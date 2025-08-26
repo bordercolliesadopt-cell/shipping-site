@@ -5,7 +5,14 @@ const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const { loadEnv } = require('./config/env');
 // Use PostgreSQL in production (Render), MySQL locally
-const dbConfig = process.env.DATABASE_URL || process.env.NODE_ENV === 'production' 
+console.log('Environment check:');
+console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
+const usePostgres = !!(process.env.DATABASE_URL || process.env.NODE_ENV === 'production');
+console.log('Using PostgreSQL:', usePostgres);
+
+const dbConfig = usePostgres
 	? require('./config/db-postgres')
 	: require('./config/db');
 const { runMigrations, ensureDefaultAdmin, ensureDatabase, getPool } = dbConfig;
