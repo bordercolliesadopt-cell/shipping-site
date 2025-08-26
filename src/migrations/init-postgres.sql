@@ -197,3 +197,37 @@ INSERT INTO shipments (
     ('TEMP-' || TO_CHAR(NOW(), 'YYMMDD') || '-GHI3', 'Global Ltd', 'Jane Doe', 'Seattle, WA', 'Chicago, IL', 'Electronics', 2.70, 'standard', 'normal', 4,
      '400 Pine St, Seattle, WA 98101', 'Denver, CO')
 ON CONFLICT (tracking_number) DO NOTHING;
+
+-- Ensure additional shipments columns exist for feature parity with MySQL schema
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS sender_alt_phone VARCHAR(60);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS sender_company VARCHAR(150);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS sender_city VARCHAR(100);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS sender_state VARCHAR(100);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS sender_postal_code VARCHAR(20);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS sender_country VARCHAR(100);
+
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS receiver_alt_phone VARCHAR(60);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS receiver_company VARCHAR(150);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS receiver_city VARCHAR(100);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS receiver_state VARCHAR(100);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS receiver_postal_code VARCHAR(20);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS receiver_country VARCHAR(100);
+
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS package_quantity INT;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS package_length DECIMAL(10,2);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS package_width DECIMAL(10,2);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS package_height DECIMAL(10,2);
+
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS insurance_required BOOLEAN DEFAULT FALSE;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS insurance_value DECIMAL(10,2);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS declared_currency VARCHAR(3) DEFAULT 'USD';
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS hs_code VARCHAR(20);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS dangerous_goods BOOLEAN DEFAULT FALSE;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS un_number VARCHAR(10);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS temperature_min DECIMAL(5,2);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS temperature_max DECIMAL(5,2);
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS incoterms VARCHAR(10) DEFAULT 'DAP';
+
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS pickup_date TIMESTAMP NULL;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS delivery_window_start TIMESTAMP NULL;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS delivery_window_end TIMESTAMP NULL;
