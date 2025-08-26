@@ -34,10 +34,10 @@ module.exports = {
 				[userId, limit]
 			);
 
-			const [[{ unreadCount }]] = await getPool().query(
-				'SELECT COUNT(*) as unreadCount FROM notifications WHERE (user_id = ? OR user_id IS NULL) AND is_read = 0',
-				[userId]
-			);
+			const unreadWhere = isPostgres
+				? 'SELECT COUNT(*) as unreadCount FROM notifications WHERE (user_id = $1 OR user_id IS NULL) AND is_read = FALSE'
+				: 'SELECT COUNT(*) as unreadCount FROM notifications WHERE (user_id = ? OR user_id IS NULL) AND is_read = 0';
+			const [[{ unreadCount }]] = await getPool().query(unreadWhere, [userId]);
 
 			res.json({
 				success: true,
@@ -60,10 +60,10 @@ module.exports = {
 				return res.json({ success: false, message: 'User not authenticated' });
 			}
 
-			await getPool().query(
-				'UPDATE notifications SET is_read = 1, read_at = NOW() WHERE id = ? AND (user_id = ? OR user_id IS NULL)',
-				[id, userId]
-			);
+			const markOneSql = isPostgres
+				? 'UPDATE notifications SET is_read = TRUE, read_at = NOW() WHERE id = $1 AND (user_id = $2 OR user_id IS NULL)'
+				: 'UPDATE notifications SET is_read = 1, read_at = NOW() WHERE id = ? AND (user_id = ? OR user_id IS NULL)';
+			await getPool().query(markOneSql, [id, userId]);
 
 			res.json({ success: true });
 		} catch (error) {
@@ -81,10 +81,10 @@ module.exports = {
 				return res.json({ success: false, message: 'User not authenticated' });
 			}
 
-			await getPool().query(
-				'UPDATE notifications SET is_read = 1, read_at = NOW() WHERE (user_id = ? OR user_id IS NULL) AND is_read = 0',
-				[userId]
-			);
+			const markAllSql = isPostgres
+				? 'UPDATE notifications SET is_read = TRUE, read_at = NOW() WHERE (user_id = $1 OR user_id IS NULL) AND is_read = FALSE'
+				: 'UPDATE notifications SET is_read = 1, read_at = NOW() WHERE (user_id = ? OR user_id IS NULL) AND is_read = 0';
+			await getPool().query(markAllSql, [userId]);
 
 			res.json({ success: true });
 		} catch (error) {
