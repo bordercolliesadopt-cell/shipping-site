@@ -1,11 +1,17 @@
-const { getPool } = require('../config/db');
+const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
+	? require('../config/db-postgres')
+	: require('../config/db');
+const { getPool, isPostgres } = dbConfig;
 const { validationResult, body } = require('express-validator');
 const dayjs = require('dayjs');
 const nodemailer = require('nodemailer');
 
 async function listStatuses() {
 	// Only show active statuses in the UI to hide less important ones
-	const [rows] = await getPool().query('SELECT * FROM statuses WHERE is_active = 1 ORDER BY position ASC, id ASC');
+	const sql = isPostgres
+		? 'SELECT * FROM statuses WHERE is_active = TRUE ORDER BY position ASC, id ASC'
+		: 'SELECT * FROM statuses WHERE is_active = 1 ORDER BY position ASC, id ASC';
+	const [rows] = await getPool().query(sql);
 	return rows;
 }
 
@@ -113,6 +119,7 @@ module.exports = {
 				: await generateUniqueTrackingNumber(prefix);
 			// Build placeholders matching the number of columns (61)
 			const placeholders = new Array(61).fill('?').join(', ');
+			const bool = (v) => (isPostgres ? Boolean(v) : (v ? 1 : 0));
 			await getPool().query(
 				`INSERT INTO shipments (
 					tracking_number,
@@ -122,13 +129,13 @@ module.exports = {
 					animal_species, animal_health_certificate, temperature_controlled, special_handling_required, insurance_required, insurance_value, declared_currency, hs_code, dangerous_goods, un_number, temperature_min, temperature_max, incoterms, pickup_date, delivery_window_start, delivery_window_end,
 					service_type, priority, special_instructions, eta, current_status_id, created_by
 				)
-				 VALUES (${placeholders})`,
+					 VALUES (${placeholders})`,
 				[
 					trackingNumberToUse,
 					sender_name, sender_email || null, sender_phone || null, sender_alt_phone || null, sender_address || null, sender_company || null, sender_city || null, sender_state || null, sender_postal_code || null, sender_country || null,
 					receiver_name, receiver_email || null, receiver_phone || null, receiver_alt_phone || null, receiver_address || null, receiver_company || null, receiver_city || null, receiver_state || null, receiver_postal_code || null, receiver_country || null,
 					origin || null, destination || null, current_location || null, (current_lat ? Number(current_lat) : null), (current_lng ? Number(current_lng) : null), (sender_lat ? Number(sender_lat) : null), (sender_lng ? Number(sender_lng) : null), (receiver_lat ? Number(receiver_lat) : null), (receiver_lng ? Number(receiver_lng) : null), package_description || null, package_type || 'general', weightKg, package_dimensions || null, package_value || null, package_quantity || null, package_length || null, package_width || null, package_height || null,
-					animal_species || null, animal_health_certificate ? 1 : 0, temperature_controlled ? 1 : 0, special_handling_required ? 1 : 0, insurance_required ? 1 : 0, insurance_value || null, declared_currency || 'USD', hs_code || null, dangerous_goods ? 1 : 0, un_number || null, temperature_min || null, temperature_max || null, incoterms || 'DAP',
+					animal_species || null, bool(animal_health_certificate), bool(temperature_controlled), bool(special_handling_required), bool(insurance_required), insurance_value || null, declared_currency || 'USD', hs_code || null, bool(dangerous_goods), un_number || null, temperature_min || null, temperature_max || null, incoterms || 'DAP',
 					pickup_date ? dayjs(pickup_date).format('YYYY-MM-DD HH:mm:ss') : null,
 					delivery_window_start ? dayjs(delivery_window_start).format('YYYY-MM-DD HH:mm:ss') : null,
 					delivery_window_end ? dayjs(delivery_window_end).format('YYYY-MM-DD HH:mm:ss') : null,
