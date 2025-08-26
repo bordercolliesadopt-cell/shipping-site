@@ -26,6 +26,11 @@ function getPool() {
 async function runMigrations() {
 	const initSqlPath = path.join(__dirname, '..', 'migrations', 'init-postgres.sql');
 	const sql = fs.readFileSync(initSqlPath, 'utf8');
+	
+	// Ensure pool is initialized
+	if (!pool) {
+		getPool(); // This initializes the pool
+	}
 	const client = await pool.connect();
 	try {
 		const statements = sql
