@@ -1,7 +1,7 @@
 const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
 	? require('../config/db-postgres')
 	: require('../config/db');
-const { getPool } = dbConfig;
+const { getPool, isPostgres } = dbConfig;
 
 module.exports = {
 	index: async (req, res) => {
@@ -10,7 +10,10 @@ module.exports = {
 		// Basic stats
 		const [[{ totalShipments }]] = await pool.query('SELECT COUNT(*) AS totalShipments FROM shipments');
 		const [[{ totalUsers }]] = await pool.query('SELECT COUNT(*) AS totalUsers FROM users');
-		const [[{ delivered }]] = await pool.query("SELECT COUNT(*) AS delivered FROM shipments s JOIN statuses st ON s.current_status_id = st.id WHERE st.is_terminal = 1 AND st.name = 'Delivered'");
+		const deliveredSql = isPostgres
+			? "SELECT COUNT(*) AS delivered FROM shipments s JOIN statuses st ON s.current_status_id = st.id WHERE st.is_terminal = TRUE AND st.name = 'Delivered'"
+			: "SELECT COUNT(*) AS delivered FROM shipments s JOIN statuses st ON s.current_status_id = st.id WHERE st.is_terminal = 1 AND st.name = 'Delivered'";
+		const [[{ delivered }]] = await pool.query(deliveredSql);
 		
 		// Additional stats
 		const [[{ inTransit }]] = await pool.query("SELECT COUNT(*) AS inTransit FROM shipments s JOIN statuses st ON s.current_status_id = st.id WHERE st.name IN ('In Transit', 'Out for Delivery', 'At Sorting Facility')");
