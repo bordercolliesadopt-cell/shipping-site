@@ -89,4 +89,5 @@ async function ensureDatabase() {
 	console.log('Database connection will be handled by PostgreSQL pool');
 }
 
-module.exports = { getPool, runMigrations, ensureDefaultAdmin, ensureDatabase };
+const isPostgres = true;
+module.exports = { getPool, runMigrations, ensureDefaultAdmin, ensureDatabase, isPostgres };

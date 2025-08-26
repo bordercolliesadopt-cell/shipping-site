@@ -281,7 +281,7 @@ async function sendStatusEmailIfEnabled({ shipment, status, note }) {
 
 async function getAllSettingsMapSafe() {
     try {
-        const [rows] = await getPool().query('SELECT `key`, `value` FROM settings');
+        const [rows] = await getPool().query('SELECT key, value FROM settings');
         const map = {};
         rows?.forEach(r => (map[r.key] = r.value));
         return map;

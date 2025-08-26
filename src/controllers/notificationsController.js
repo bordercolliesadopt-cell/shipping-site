@@ -1,4 +1,7 @@
-const { getPool } = require('../config/db');
+const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
+	? require('../config/db-postgres')
+	: require('../config/db');
+const { getPool, isPostgres } = dbConfig;
 
 // Helper function to create a new notification
 async function createNotification(userId, title, message, type = 'info', actionUrl = null, icon = null) {
@@ -19,13 +22,17 @@ module.exports = {
 				return res.json({ success: false, message: 'User not authenticated' });
 			}
 
-			const [notifications] = await getPool().query(`
-				SELECT n.*, DATE_FORMAT(n.created_at, '%b %d, %Y at %h:%i %p') as formatted_date
-				FROM notifications n 
-				WHERE n.user_id = ? OR n.user_id IS NULL
-				ORDER BY n.created_at DESC 
-				LIMIT ?
-			`, [userId, limit]);
+			const dateExpr = isPostgres
+				? "to_char(n.created_at, 'Mon DD, YYYY at HH12:MI AM')"
+				: "DATE_FORMAT(n.created_at, '%b %d, %Y at %h:%i %p')";
+			const [notifications] = await getPool().query(
+				`SELECT n.*, ${dateExpr} as formatted_date
+				 FROM notifications n 
+				 WHERE n.user_id = ? OR n.user_id IS NULL
+				 ORDER BY n.created_at DESC 
+				 LIMIT ?`,
+				[userId, limit]
+			);
 
 			const [[{ unreadCount }]] = await getPool().query(
 				'SELECT COUNT(*) as unreadCount FROM notifications WHERE (user_id = ? OR user_id IS NULL) AND is_read = 0',

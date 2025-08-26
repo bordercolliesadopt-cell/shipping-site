@@ -1,4 +1,7 @@
-const { getPool } = require('../config/db');
+const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
+	? require('../config/db-postgres')
+	: require('../config/db');
+const { getPool } = dbConfig;
 
 const trackingController = {
     // Show tracking page

@@ -1,9 +1,12 @@
-const { getPool } = require('../config/db');
+const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
+	? require('../config/db-postgres')
+	: require('../config/db');
+const { getPool, isPostgres } = dbConfig;
 const nodemailer = require('nodemailer');
 
 async function getAllSettingsMap() {
 	try {
-		const [rows] = await getPool().query('SELECT `key`, `value` FROM settings');
+		const [rows] = await getPool().query('SELECT key, value FROM settings');
 		const map = {};
 		if (rows && Array.isArray(rows)) {
 			rows.forEach(r => (map[r.key] = r.value));
@@ -40,7 +43,11 @@ module.exports = {
 		try {
 			await conn.beginTransaction();
 			for (const [key, value] of entries) {
-				await conn.query('INSERT INTO settings(`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)', [key, value]);
+				if (isPostgres) {
+					await conn.query('INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value', [key, value]);
+				} else {
+					await conn.query('INSERT INTO settings(`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)', [key, value]);
+				}
 			}
 			await conn.commit();
 			req.flash('success', 'Settings updated');

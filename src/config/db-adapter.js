@@ -13,7 +13,9 @@ class DatabaseAdapter {
 		}
 
 		let paramIndex = 1;
-		const convertedQuery = query.replace(/\?/g, () => `$${paramIndex++}`);
+		let convertedQuery = query.replace(/\?/g, () => `$${paramIndex++}`);
+		// Strip MySQL backticks around identifiers for Postgres
+		convertedQuery = convertedQuery.replace(/`([a-zA-Z0-9_]+)`/g, '$1');
 		return { query: convertedQuery, params };
 	}
 

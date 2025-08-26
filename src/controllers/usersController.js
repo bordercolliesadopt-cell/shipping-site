@@ -1,4 +1,7 @@
-const { getPool } = require('../config/db');
+const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
+	? require('../config/db-postgres')
+	: require('../config/db');
+const { getPool } = dbConfig;
 const { validationResult, body } = require('express-validator');
 const bcrypt = require('bcryptjs');
 
@@ -118,7 +121,7 @@ module.exports = {
 		}
 		
 		// Prevent deleting the last admin
-		const [[{ adminCount }]] = await getPool().query('SELECT COUNT(*) AS adminCount FROM users WHERE role = "admin"');
+		const [[{ adminCount }]] = await getPool().query("SELECT COUNT(*) AS adminCount FROM users WHERE role = 'admin'");
 		if (adminCount <= 1) {
 			req.flash('error', 'Cannot delete the last admin user');
 			return res.redirect('/admin/users');

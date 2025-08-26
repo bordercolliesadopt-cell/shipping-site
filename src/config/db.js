@@ -82,4 +82,5 @@ async function ensureDefaultAdmin() {
 	}
 }
 
-module.exports = { getPool, runMigrations, ensureDefaultAdmin, ensureDatabase };
+const isPostgres = false;
+module.exports = { getPool, runMigrations, ensureDefaultAdmin, ensureDatabase, isPostgres };

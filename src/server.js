@@ -37,7 +37,7 @@ app.use('/img', express.static(path.join(__dirname, '..', 'img')));
 // Load settings from DB on each request so globals (e.g., company name) are dynamic
 app.use(async (req, res, next) => {
 	try {
-		const [rows] = await getPool().query('SELECT `key`, `value` FROM settings');
+		const [rows] = await getPool().query('SELECT key, value FROM settings');
 		const settingsMap = {};
 		if (rows && Array.isArray(rows)) {
 			rows.forEach(r => (settingsMap[r.key] = r.value));
