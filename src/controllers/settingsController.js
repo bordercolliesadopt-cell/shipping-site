@@ -39,25 +39,45 @@ module.exports = {
 	update: async (req, res) => {
 		const data = req.body || {};
 		const entries = Object.entries(data);
-		const conn = await getPool().getConnection();
+		const adapter = getPool();
+		const conn = await adapter.getConnection();
 		try {
-			await conn.beginTransaction();
+			if (isPostgres) {
+				await conn.query('BEGIN');
+			} else {
+				await conn.beginTransaction();
+			}
 			for (const [key, value] of entries) {
+				const sql = isPostgres
+					? 'INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value'
+					: 'INSERT INTO settings(`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)';
 				if (isPostgres) {
-					await conn.query('INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value', [key, value]);
+					const { query, params } = adapter.convertQuery(sql, [key, value]);
+					await conn.query(query, params);
 				} else {
-					await conn.query('INSERT INTO settings(`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)', [key, value]);
+					await conn.query(sql, [key, value]);
 				}
 			}
-			await conn.commit();
+			if (isPostgres) {
+				await conn.query('COMMIT');
+			} else {
+				await conn.commit();
+			}
 			req.flash('success', 'Settings updated');
 		} catch (e) {
-			await conn.rollback();
+			try {
+				if (isPostgres) {
+					await conn.query('ROLLBACK');
+				} else {
+					await conn.rollback();
+				}
+			} catch (_) {}
 			console.error(e);
 			req.flash('error', 'Failed to update settings');
+		} finally {
+			conn.release();
+			res.redirect('/admin/settings');
 		}
-		conn.release();
-		res.redirect('/admin/settings');
 	},
 	testSmtp: async (req, res) => {
 		const settings = await getAllSettingsMap();
