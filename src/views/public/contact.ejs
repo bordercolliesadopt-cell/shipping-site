@@ -1,0 +1,299 @@
+<% layout('layouts/public') %>
+
+<!-- Modern Hero Section -->
+<section style="margin-top: -70px; padding-top: 70px; min-height: 60vh; position: relative; display: flex; align-items: center; width: 100%; background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(30, 58, 138, 0.85)), url('/img/parcel%20man%20carrying%20parcel.jpeg') center/cover fixed;">
+    <!-- Animated Overlay with Pattern -->
+    <div style="position: absolute; inset: 0; opacity: 0.4; background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0 2px, transparent 2px), radial-gradient(circle at 70% 60%, rgba(255,255,255,0.06) 0 2px, transparent 2px); background-size: 200px 200px, 240px 240px; background-repeat: repeat;"></div>
+    
+    <div style="width: 100%; padding: 2rem 1rem; position: relative; z-index: 1;">
+        <div style="max-width: 1280px; margin: 0 auto; text-align: center;">
+            <span style="display: inline-block; padding: 0.5rem 1rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 50px; color: #60a5fa; font-size: 0.875rem; font-weight: 600; margin-bottom: 1.5rem;">
+                <i class="bi bi-headset"></i> 24/7 Support Available
+            </span>
+            <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; color: white; line-height: 1.1; margin-bottom: 1.5rem;">
+                Contact <span style="background: linear-gradient(90deg, #3b82f6, #0ea5e9); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Our Team</span>
+            </h1>
+            <p style="font-size: clamp(1rem, 2vw, 1.25rem); color: #94a3b8; margin-bottom: 2rem; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Ready to ship? Our logistics experts are here to help you find the perfect solution for your needs.
+            </p>
+            
+            <!-- Contact Methods -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                <a href="tel:+15551234567" style="padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); transition: transform 0.3s;">
+                    <i class="bi bi-telephone"></i> Call Now
+                </a>
+                <a href="mailto:info@emilash.com" style="padding: 1rem 2rem; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); transition: all 0.3s;">
+                    Email Us <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section style="padding: 3rem 1rem; background: white; width: 100%;">
+    <div style="max-width: 1280px; margin: 0 auto;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem;">
+        <!-- Contact Form -->
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <span style="display: inline-block; padding: 0.5rem 1rem; background: #eff6ff; border-radius: 50px; color: #2563eb; font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem;">
+                        Get In Touch
+                    </span>
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Send Us a Message</h3>
+                    <p style="color: #64748b;">We'll get back to you within 24 hours</p>
+                </div>
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name *</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Subject *</label>
+                            <select class="form-select" required>
+                                <option value="">Select a subject</option>
+                                <option>Get a Quote</option>
+                                <option>Track Shipment</option>
+                                <option>General Inquiry</option>
+                                <option>Technical Support</option>
+                                <option>Partnership</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Message *</label>
+                            <textarea class="form-control" rows="5" required placeholder="Tell us how we can help you..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="newsletter">
+                                <label class="form-check-label" for="newsletter">
+                                    Subscribe to our newsletter for shipping updates and promotions
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn-modern btn-primary-modern">
+                                <i class="bi bi-send me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Contact Info -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 1rem;">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Head Office</h5>
+                    <p style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
+                    123 Logistics Avenue<br>
+                    New York, NY 10001<br>
+                    United States
+                </p>
+            </div>
+            
+                <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 1rem;">
+                    <i class="bi bi-telephone-fill"></i>
+                </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Phone Numbers</h5>
+                    <p style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
+                    Main: +1 (555) 123-4567<br>
+                    Toll Free: 1-800-EMILASH<br>
+                    Support: +1 (555) 987-6543
+                </p>
+            </div>
+            
+                <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 1rem;">
+                    <i class="bi bi-envelope-fill"></i>
+                </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Email Addresses</h5>
+                    <p style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
+                    General: info@emilash.com<br>
+                    Support: support@emilash.com<br>
+                    Sales: sales@emilash.com
+                </p>
+            </div>
+            
+                <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 1rem;">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Business Hours</h5>
+                    <p style="color: #64748b; margin-bottom: 0.5rem; line-height: 1.6;">
+                    Monday - Friday: 8:00 AM - 8:00 PM<br>
+                    Saturday: 9:00 AM - 5:00 PM<br>
+                        Sunday: 10:00 AM - 4:00 PM
+                </p>
+                    <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #dcfce7; border-radius: 50px; color: #166534; font-size: 0.75rem; font-weight: 600;">24/7 Emergency Support Available</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    </div>
+</section>
+
+<!-- Office Locations -->
+<section style="padding: 3rem 1rem; background: #f8fafc; width: 100%;">
+    <div style="max-width: 1280px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <span style="display: inline-block; padding: 0.5rem 1rem; background: #dcfce7; border-radius: 50px; color: #166534; font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem;">
+                Global Network
+            </span>
+            <h2 style="font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; color: #0f172a; margin-bottom: 1rem;">Our Global Offices</h2>
+            <p style="font-size: 1.125rem; color: #64748b; max-width: 600px; margin: 0 auto;">Find our offices around the world</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); text-align: center;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <h6 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">New York</h6>
+                <p style="color: #64748b; font-size: 0.9rem; margin: 0;">USA Headquarters<br>+1 (555) 123-4567</p>
+            </div>
+            
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); text-align: center;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    <i class="bi bi-geo-alt"></i>
+        </div>
+                <h6 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">London</h6>
+                <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Europe Office<br>+44 20 1234 5678</p>
+            </div>
+            
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); text-align: center;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    <i class="bi bi-geo-alt"></i>
+        </div>
+                <h6 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Singapore</h6>
+                <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Asia Pacific HQ<br>+65 1234 5678</p>
+            </div>
+            
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); text-align: center;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    <i class="bi bi-geo-alt"></i>
+        </div>
+                <h6 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Dubai</h6>
+                <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Middle East Office<br>+971 4 123 4567</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section style="padding: 4rem 1rem; background: white; width: 100%;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <span style="display: inline-block; padding: 0.5rem 1rem; background: #fee2e2; border-radius: 50px; color: #991b1b; font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem;">
+                FAQs
+            </span>
+            <h2 style="font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; color: #0f172a; margin-bottom: 1rem;">Frequently Asked Questions</h2>
+                </div>
+                
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <details style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #0f172a; font-size: 1.125rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                    How do I track my shipment?
+                    <i class="bi bi-chevron-down"></i>
+                </summary>
+                <p style="margin-top: 1rem; color: #64748b; line-height: 1.7;">You can track your shipment using the tracking number provided at booking. Simply enter it on our <a href="/track" style="color: #3b82f6; text-decoration: none;">tracking page</a> for real-time updates on your package location and estimated delivery time.</p>
+            </details>
+            
+            <details style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #0f172a; font-size: 1.125rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                            What shipping services do you offer?
+                    <i class="bi bi-chevron-down"></i>
+                </summary>
+                <p style="margin-top: 1rem; color: #64748b; line-height: 1.7;">We offer comprehensive shipping solutions including air freight, sea freight, land freight, express delivery, and specialized services for live animals and oversized cargo. Visit our <a href="/services" style="color: #3b82f6; text-decoration: none;">services page</a> for details.</p>
+            </details>
+            
+            <details style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #0f172a; font-size: 1.125rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                            How can I get a shipping quote?
+                    <i class="bi bi-chevron-down"></i>
+                </summary>
+                <p style="margin-top: 1rem; color: #64748b; line-height: 1.7;">You can request a quote by filling out the contact form above or calling our sales team directly. We'll provide a customized quote based on your shipment details, destination, and service requirements.</p>
+            </details>
+            
+            <details style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #0f172a; font-size: 1.125rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                    Do you handle customs clearance?
+                    <i class="bi bi-chevron-down"></i>
+                </summary>
+                <p style="margin-top: 1rem; color: #64748b; line-height: 1.7;">Yes, we provide comprehensive customs clearance services for international shipments. Our expert team handles all documentation and ensures compliance with import/export regulations.</p>
+            </details>
+                </div>
+                
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/contact" style="color: #3b82f6; font-weight: 600; text-decoration: none;">Have More Questions? Contact Us <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section style="padding: 4rem 1rem; background: linear-gradient(135deg, #1e3a8a, #3b82f6); width: 100%;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h2 style="font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; color: white; margin-bottom: 1rem;">Stay Updated</h2>
+        <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 2rem;">Subscribe to our newsletter for shipping updates and promotions delivered to your inbox</p>
+        <form style="display: flex; gap: 1rem; max-width: 500px; margin: 0 auto; flex-wrap: wrap; justify-content: center;">
+            <input type="email" placeholder="Enter your email" style="flex: 1; min-width: 250px; padding: 1rem; border: none; border-radius: 8px; font-size: 1rem;">
+            <button type="submit" style="padding: 1rem 2rem; background: white; color: #1e3a8a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Subscribe</button>
+        </form>
+        <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.7); margin-top: 1rem;">We respect your privacy. Unsubscribe at any time.</p>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section style="padding: 4rem 1rem; background: #f8fafc; width: 100%;">
+    <div style="max-width: 1280px; margin: 0 auto;">
+        <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);">
+            <img src="/img/pickup%20parcel%20front%20door(bg3).jpg" style="width: 100%; height: 400px; object-fit: cover;" alt="Our Location">
+            <div style="padding: 2rem; text-center;">
+                <h4 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;">Visit Our Head Office</h4>
+                <p style="color: #64748b; margin-bottom: 1.5rem;">123 Logistics Avenue, New York, NY 10001</p>
+                <a href="#" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                    <i class="bi bi-map"></i> Get Directions
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="padding: 4rem 1rem; background: linear-gradient(135deg, #1e293b, #0f172a); width: 100%;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h2 style="font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; color: white; margin-bottom: 1rem;">Need Immediate Assistance?</h2>
+        <p style="font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem;">Our support team is available 24/7 to help you with any shipping needs</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="tel:+15551234567" style="padding: 1rem 2rem; background: white; color: #0f172a; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-telephone"></i> Call Now
+            </a>
+            <a href="/track" style="padding: 1rem 2rem; background: transparent; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid rgba(255, 255, 255, 0.3);">
+                Track Shipment
+            </a>
+        </div>
+    </div>
+</section>

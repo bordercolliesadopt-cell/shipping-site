@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title><%= title ? title + ' · ' : '' %><%= companyName %> Admin</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+	<link href="/public/css/admin.css" rel="stylesheet">
+	<!-- Mapbox GL & Geocoder -->
+	<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+	<link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" rel="stylesheet">
+	<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+	<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+	<script>window.MAPBOX_TOKEN = '<%= (typeof appSettings !== 'undefined' && appSettings && appSettings.MAPBOX_TOKEN) ? appSettings.MAPBOX_TOKEN : (typeof companyName !== 'undefined' ? 'pk.eyJ1IjoiYmFua2lzaCIsImEiOiJjbWVzZWgycGEwMjB3MmxyNGlrbWt2aTNjIn0.37ls066K6mb1uLO1_0vb9g' : '') %>';</script>
+</head>
+<body>
+	<!-- Sidebar -->
+	<nav class="sidebar" id="sidebar">
+		<div class="sidebar-header">
+			<div class="sidebar-brand">
+				<i class="bi bi-boxes"></i>
+				<span class="brand-text"><%= companyName %></span>
+			</div>
+			<button class="sidebar-toggle d-lg-none" id="sidebarToggle">
+				<i class="bi bi-x-lg"></i>
+			</button>
+		</div>
+		
+		<div class="sidebar-menu">
+			<ul class="nav flex-column">
+				<li class="nav-item">
+					<a class="nav-link" href="/admin">
+						<i class="bi bi-speedometer2"></i>
+						<span>Dashboard</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/admin/shipments">
+						<i class="bi bi-box-seam"></i>
+						<span>Shipments</span>
+						<span class="badge bg-primary ms-auto">New</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/admin/shipments/new">
+						<i class="bi bi-plus-circle"></i>
+						<span>Create Shipment</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/admin/statuses">
+						<i class="bi bi-tags"></i>
+						<span>Status Management</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/admin/users">
+						<i class="bi bi-people"></i>
+						<span>Users</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/admin/settings">
+						<i class="bi bi-gear"></i>
+						<span>Settings</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<% if (currentUser) { %>
+		<div class="sidebar-footer">
+			<div class="user-info">
+				<div class="user-avatar">
+					<i class="bi bi-person-circle"></i>
+				</div>
+				<div class="user-details">
+					<div class="user-name"><%= currentUser.name %></div>
+					<div class="user-role">Administrator</div>
+				</div>
+			</div>
+			<form action="/admin/logout" method="post" class="logout-form">
+				<button class="btn btn-logout" title="Logout">
+					<i class="bi bi-box-arrow-right"></i>
+				</button>
+			</form>
+		</div>
+		<% } %>
+	</nav>
+	
+	<!-- Overlay for mobile -->
+	<div class="sidebar-overlay" id="sidebarOverlay"></div>
+	
+	<!-- Main Content -->
+	<main class="main-content">
+		<!-- Top Bar -->
+		<div class="top-bar">
+			<button class="sidebar-toggle d-lg-none" id="sidebarToggleTop">
+				<i class="bi bi-list"></i>
+			</button>
+			<div class="page-title">
+				<h1><%= title || 'Dashboard' %></h1>
+			</div>
+			<div class="top-bar-actions">
+				<div class="notifications">
+					<div class="dropdown">
+						<button class="btn btn-icon" id="notificationDropdown" data-bs-toggle="dropdown" title="Notifications">
+							<i class="bi bi-bell"></i>
+							<span class="notification-badge" id="notificationCount">0</span>
+						</button>
+						<div class="dropdown-menu dropdown-menu-end notification-dropdown" style="width: 350px; max-height: 500px; overflow-y: auto;">
+							<div class="dropdown-header d-flex justify-content-between align-items-center">
+								<span class="fw-bold">Notifications</span>
+								<button class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">
+									Mark All Read
+								</button>
+							</div>
+							<div class="dropdown-divider"></div>
+							<div id="notificationList">
+								<div class="text-center p-3">
+									<div class="loading-spinner"></div>
+									<small class="text-muted">Loading notifications...</small>
+								</div>
+							</div>
+							<div class="dropdown-divider"></div>
+							<div class="dropdown-footer text-center">
+								<a href="/admin/notifications" class="btn btn-sm btn-primary w-100">
+									View All Notifications
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Page Content -->
+		<div class="content-area">
+			<% if (flashSuccess && flashSuccess.length) { %>
+				<div class="alert alert-success alert-modern">
+					<i class="bi bi-check-circle-fill"></i>
+					<div>
+						<%= flashSuccess.join('<br>') %>
+					</div>
+					<button class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+			<% } %>
+			<% if (flashError && flashError.length) { %>
+				<div class="alert alert-danger alert-modern">
+					<i class="bi bi-exclamation-triangle-fill"></i>
+					<div>
+						<%= flashError.join('<br>') %>
+					</div>
+					<button class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+			<% } %>
+			<%- body %>
+		</div>
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+		// Sidebar toggle functionality
+		const sidebar = document.getElementById('sidebar');
+		const sidebarOverlay = document.getElementById('sidebarOverlay');
+		const sidebarToggleTop = document.getElementById('sidebarToggleTop');
+		const sidebarToggle = document.getElementById('sidebarToggle');
+		
+		function toggleSidebar() {
+			sidebar.classList.toggle('active');
+			sidebarOverlay.classList.toggle('active');
+			document.body.classList.toggle('sidebar-open');
+		}
+		
+		sidebarToggleTop?.addEventListener('click', toggleSidebar);
+		sidebarToggle?.addEventListener('click', toggleSidebar);
+		sidebarOverlay?.addEventListener('click', toggleSidebar);
+		
+		// Set active nav link
+		const currentPath = window.location.pathname;
+		document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+			if (link.getAttribute('href') === currentPath) {
+				link.classList.add('active');
+			}
+		});
+		
+		// Auto-hide alerts
+		setTimeout(() => {
+			document.querySelectorAll('.alert').forEach(alert => {
+				if (alert.classList.contains('alert-success')) {
+					alert.style.transition = 'opacity 0.5s ease';
+					alert.style.opacity = '0';
+					setTimeout(() => alert.remove(), 500);
+				}
+			});
+		}, 4000);
+		
+		// Notification system
+		loadNotifications();
+		setInterval(loadNotifications, 30000); // Refresh every 30 seconds
+		
+		async function loadNotifications() {
+			try {
+				const response = await fetch('/admin/notifications');
+				const data = await response.json();
+				
+				if (data.success) {
+					updateNotificationBadge(data.unreadCount);
+					renderNotifications(data.notifications);
+				}
+			} catch (error) {
+				console.error('Error loading notifications:', error);
+			}
+		}
+		
+		function updateNotificationBadge(count) {
+			const badge = document.getElementById('notificationCount');
+			if (badge) {
+				badge.textContent = count;
+				badge.style.display = count > 0 ? 'inline' : 'none';
+			}
+		}
+		
+		function renderNotifications(notifications) {
+			const list = document.getElementById('notificationList');
+			if (!list) return;
+			
+			if (notifications.length === 0) {
+				list.innerHTML = `
+					<div class="text-center p-4">
+						<i class="bi bi-bell-slash display-6 text-muted opacity-50"></i>
+						<p class="text-muted mt-2 mb-0">No notifications</p>
+					</div>
+				`;
+				return;
+			}
+			
+			list.innerHTML = notifications.map(notification => `
+				<div class="notification-item ${notification.is_read ? 'read' : 'unread'}" data-id="${notification.id}">
+					<div class="d-flex align-items-start p-3">
+						<div class="me-3">
+							<div class="notification-icon ${getNotificationIconClass(notification.type)}">
+								<i class="${notification.icon || 'bi-bell'}"></i>
+							</div>
+						</div>
+						<div class="flex-grow-1">
+							<div class="d-flex justify-content-between align-items-start">
+								<h6 class="notification-title mb-1">${notification.title}</h6>
+								<div class="dropdown">
+									<button class="btn btn-sm" data-bs-toggle="dropdown">
+										<i class="bi bi-three-dots-vertical"></i>
+									</button>
+									<ul class="dropdown-menu dropdown-menu-end">
+										${!notification.is_read ? `
+											<li><button class="dropdown-item" onclick="markAsRead(${notification.id})">
+												<i class="bi bi-check me-2"></i>Mark as Read
+											</button></li>
+										` : ''}
+										<li><button class="dropdown-item text-danger" onclick="deleteNotification(${notification.id})">
+											<i class="bi bi-trash me-2"></i>Delete
+										</button></li>
+									</ul>
+								</div>
+							</div>
+							<p class="notification-message text-muted mb-1">${notification.message}</p>
+							<small class="notification-time text-muted">${notification.formatted_date}</small>
+							${notification.action_url ? `
+								<div class="mt-2">
+									<a href="${notification.action_url}" class="btn btn-sm btn-outline-primary">
+										View Details
+									</a>
+								</div>
+							` : ''}
+						</div>
+					</div>
+				</div>
+			`).join('');
+		}
+		
+		function getNotificationIconClass(type) {
+			switch(type) {
+				case 'success': return 'bg-success text-white';
+				case 'warning': return 'bg-warning text-dark';
+				case 'error': return 'bg-danger text-white';
+				default: return 'bg-primary text-white';
+			}
+		}
+		
+		async function markAsRead(id) {
+			try {
+				const response = await fetch(`/admin/notifications/${id}/read`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' }
+				});
+				
+				if (response.ok) {
+					loadNotifications(); // Refresh notifications
+				}
+			} catch (error) {
+				console.error('Error marking notification as read:', error);
+			}
+		}
+		
+		async function markAllAsRead() {
+			try {
+				const response = await fetch('/admin/notifications/mark-all-read', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' }
+				});
+				
+				if (response.ok) {
+					loadNotifications(); // Refresh notifications
+				}
+			} catch (error) {
+				console.error('Error marking all notifications as read:', error);
+			}
+		}
+		
+		async function deleteNotification(id) {
+			if (!confirm('Are you sure you want to delete this notification?')) return;
+			
+			try {
+				const response = await fetch(`/admin/notifications/${id}`, {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' }
+				});
+				
+				if (response.ok) {
+					loadNotifications(); // Refresh notifications
+				}
+			} catch (error) {
+				console.error('Error deleting notification:', error);
+			}
+		}
+	</script>
+</body>
+</html>

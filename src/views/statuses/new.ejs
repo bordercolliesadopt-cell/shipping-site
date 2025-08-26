@@ -1,0 +1,48 @@
+<% layout('layouts/admin') %>
+
+<div class="row mb-4">
+	<div class="col-12">
+		<h1 class="h3 mb-0">🏷️ Create New Status</h1>
+		<p class="text-muted">Define a new shipping status</p>
+	</div>
+</div>
+
+<div class="card">
+	<div class="card-header">
+		<h5 class="mb-0">Status Information</h5>
+	</div>
+	<div class="card-body">
+		<form method="post" action="/admin/statuses" class="row g-3">
+			<div class="col-md-6">
+				<label class="form-label">📝 Name *</label>
+				<input name="name" class="form-control" required value="<%= (form && form.name) || '' %>" placeholder="In Transit">
+			</div>
+			<div class="col-md-3">
+				<label class="form-label">🎨 Color *</label>
+				<input name="color" type="color" class="form-control form-control-color" required value="<%= (form && form.color) || '#0d6efd' %>">
+			</div>
+			<div class="col-md-3">
+				<label class="form-label">📊 Position *</label>
+				<input type="number" name="position" class="form-control" required value="<%= (form && form.position) || '0' %>" placeholder="1">
+			</div>
+			<div class="col-12">
+				<label class="form-label">📄 Description</label>
+				<textarea name="description" class="form-control" rows="2" placeholder="Describe what this status means..."><%= (form && form.description) || '' %></textarea>
+			</div>
+			<div class="col-12">
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="is_terminal" value="1" id="is_terminal" <%= (form && form.is_terminal) ? 'checked' : '' %>>
+					<label class="form-check-label" for="is_terminal">
+						🏁 Terminal status (final state - no further updates)
+					</label>
+				</div>
+			</div>
+			<div class="col-12">
+				<div class="d-flex justify-content-end gap-2">
+					<a href="/admin/statuses" class="btn btn-outline-secondary">❌ Cancel</a>
+					<button type="submit" class="btn btn-primary">✅ Create Status</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

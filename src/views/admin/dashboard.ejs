@@ -1,0 +1,481 @@
+<% layout('layouts/admin') %>
+
+<!-- Dashboard Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+	<div>
+		<h2 class="mb-1">Welcome back, <%= currentUser?.name || 'Admin' %>! 👋</h2>
+		<p class="text-muted mb-0">Here's what's happening with your shipments today.</p>
+	</div>
+	<div class="d-flex gap-2">
+		<button class="btn btn-outline-primary btn-sm">
+			<i class="bi bi-download"></i>
+			Export Report
+		</button>
+		<button class="btn btn-primary">
+			<i class="bi bi-plus-circle"></i>
+			New Shipment
+		</button>
+	</div>
+</div>
+
+<!-- Key Statistics -->
+<div class="row g-4 mb-5">
+	<div class="col-lg-3 col-md-6">
+		<div class="stat-card border-left-primary">
+			<i class="bi bi-box-seam text-primary position-absolute" style="top: 1rem; right: 1rem; font-size: 2rem; opacity: 0.1;"></i>
+			<div class="stat-number text-primary"><%= stats.totalShipments %></div>
+			<div class="stat-label">Total Shipments</div>
+			<small class="text-muted">
+				<i class="bi bi-arrow-up text-success"></i>
+				+5.2% from last month
+			</small>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6">
+		<div class="stat-card border-left-success">
+			<i class="bi bi-check-circle text-success position-absolute" style="top: 1rem; right: 1rem; font-size: 2rem; opacity: 0.1;"></i>
+			<div class="stat-number text-success"><%= stats.delivered %></div>
+			<div class="stat-label">Delivered</div>
+			<small class="text-muted">
+				<i class="bi bi-arrow-up text-success"></i>
+				+12.8% from last week
+			</small>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6">
+		<div class="stat-card border-left-info">
+			<i class="bi bi-truck text-info position-absolute" style="top: 1rem; right: 1rem; font-size: 2rem; opacity: 0.1;"></i>
+			<div class="stat-number text-info"><%= stats.inTransit || 0 %></div>
+			<div class="stat-label">In Transit</div>
+			<small class="text-muted">
+				<i class="bi bi-arrow-down text-danger"></i>
+				-2.1% from yesterday
+			</small>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6">
+		<div class="stat-card border-left-warning">
+			<i class="bi bi-clock text-warning position-absolute" style="top: 1rem; right: 1rem; font-size: 2rem; opacity: 0.1;"></i>
+			<div class="stat-number text-warning"><%= stats.pending || 0 %></div>
+			<div class="stat-label">Pending</div>
+			<small class="text-muted">
+				<i class="bi bi-dash text-muted"></i>
+				No change
+			</small>
+		</div>
+	</div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-5">
+	<div class="col-lg-8">
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="bi bi-bar-chart-line"></i>
+					Shipments Overview
+				</h5>
+				<div class="dropdown">
+					<button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+						Last 30 days
+					</button>
+					<ul class="dropdown-menu">
+						<li><a class="dropdown-item" href="#">Last 7 days</a></li>
+						<li><a class="dropdown-item" href="#">Last 30 days</a></li>
+						<li><a class="dropdown-item" href="#">Last 90 days</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="card-body">
+				<canvas id="shipmentsChart" height="100"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="card h-100">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-pie-chart"></i>
+					Status Distribution
+				</h5>
+			</div>
+			<div class="card-body">
+				<canvas id="statusChart"></canvas>
+				<div class="mt-3">
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<div class="d-flex align-items-center">
+							<div class="bg-success rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+							<small>Delivered</small>
+						</div>
+						<small class="fw-bold"><%= ((stats.delivered / stats.totalShipments) * 100).toFixed(1) %>%</small>
+					</div>
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<div class="d-flex align-items-center">
+							<div class="bg-info rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+							<small>In Transit</small>
+						</div>
+						<small class="fw-bold"><%= (((stats.inTransit || 0) / stats.totalShipments) * 100).toFixed(1) %>%</small>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<div class="d-flex align-items-center">
+							<div class="bg-warning rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+							<small>Pending</small>
+						</div>
+						<small class="fw-bold"><%= (((stats.pending || 0) / stats.totalShipments) * 100).toFixed(1) %>%</small>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Recent Activity & Quick Actions -->
+<div class="row g-4">
+	<div class="col-lg-8">
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="bi bi-clock-history"></i>
+					Recent Shipments
+				</h5>
+				<a href="/admin/shipments" class="btn btn-sm btn-outline-primary">
+					View All
+					<i class="bi bi-arrow-right"></i>
+				</a>
+			</div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table table-hover mb-0">
+						<thead>
+							<tr>
+								<th class="ps-4">Tracking Number</th>
+								<th>Route</th>
+								<th>Status</th>
+								<th>Priority</th>
+								<th>Service</th>
+								<th>Created</th>
+								<th class="pe-4">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<% if (recentShipments && recentShipments.length) { %>
+								<% recentShipments.forEach(s => { %>
+									<tr class="fade-in">
+										<td class="ps-4">
+											<div class="d-flex align-items-center">
+												<div class="me-3">
+													<div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+														<i class="bi bi-box-seam text-primary"></i>
+													</div>
+												</div>
+												<div>
+													<a href="/admin/shipments/<%= s.id %>" class="fw-bold text-decoration-none text-dark">
+												<%= s.tracking_number %>
+											</a>
+													<div class="small text-muted">
+														<%= s.package_type ? (s.package_type.charAt(0).toUpperCase() + s.package_type.slice(1)).replace('_', ' ') : 'General' %>
+													</div>
+												</div>
+											</div>
+										</td>
+										<td>
+											<div class="small">
+												<div class="fw-semibold"><%= s.sender_name %></div>
+												<div class="text-muted d-flex align-items-center">
+													<i class="bi bi-arrow-down me-1"></i>
+													<%= s.receiver_name %>
+												</div>
+											</div>
+										</td>
+										<td>
+											<span class="badge status-badge" data-color="<%= s.status_color || '#6c757d' %>" style="background-color: #6c757d; color: #fff;">
+												<%= s.status_name || 'N/A' %>
+											</span>
+										</td>
+										<td>
+											<span class="priority-<%= s.priority || 'normal' %>">
+												<i class="bi bi-flag-fill me-1"></i>
+												<%= (s.priority || 'normal').toUpperCase() %>
+											</span>
+										</td>
+										<td>
+											<span class="badge bg-light text-dark">
+												<%= s.service_type ? (s.service_type.charAt(0).toUpperCase() + s.service_type.slice(1)).replace('_', ' ') : 'Standard' %>
+											</span>
+										</td>
+										<td>
+											<small class="text-muted">
+												<%= new Date(s.created_at).toLocaleDateString('en-US', { 
+													month: 'short', 
+													day: 'numeric',
+													hour: '2-digit',
+													minute: '2-digit'
+												}) %>
+											</small>
+										</td>
+										<td class="pe-4">
+											<div class="dropdown">
+												<button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+													<i class="bi bi-three-dots"></i>
+												</button>
+												<ul class="dropdown-menu">
+													<li><a class="dropdown-item" href="/admin/shipments/<%= s.id %>">
+														<i class="bi bi-eye me-2"></i>View Details
+													</a></li>
+													<li><a class="dropdown-item" href="/admin/shipments/<%= s.id %>/edit">
+														<i class="bi bi-pencil me-2"></i>Edit
+													</a></li>
+													<li><hr class="dropdown-divider"></li>
+													<li><a class="dropdown-item text-primary" href="#">
+														<i class="bi bi-truck me-2"></i>Track Package
+													</a></li>
+												</ul>
+											</div>
+										</td>
+									</tr>
+								<% }) %>
+							<% } else { %>
+								<tr>
+									<td colspan="7" class="text-center py-5">
+										<div class="text-muted">
+											<i class="bi bi-inbox display-1 d-block mb-3 opacity-25"></i>
+											<h6>No shipments yet</h6>
+											<p class="mb-3">Get started by creating your first shipment</p>
+											<a href="/admin/shipments/new" class="btn btn-primary">
+												<i class="bi bi-plus-circle me-1"></i>
+												Create Shipment
+											</a>
+										</div>
+									</td>
+								</tr>
+							<% } %>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-4">
+		<!-- Quick Actions -->
+		<div class="card mb-4">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-lightning"></i>
+					Quick Actions
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="d-grid gap-3">
+					<a href="/admin/shipments/new" class="btn btn-primary d-flex align-items-center justify-content-start">
+						<i class="bi bi-plus-circle me-3"></i>
+						<div class="text-start">
+							<div class="fw-bold">New Shipment</div>
+							<small class="opacity-75">Create a new package</small>
+						</div>
+					</a>
+					<a href="/admin/shipments" class="btn btn-outline-primary d-flex align-items-center justify-content-start">
+						<i class="bi bi-list-ul me-3"></i>
+						<div class="text-start">
+							<div class="fw-bold">View All Shipments</div>
+							<small class="opacity-75">Manage existing packages</small>
+						</div>
+					</a>
+					<a href="/admin/statuses" class="btn btn-outline-secondary d-flex align-items-center justify-content-start">
+						<i class="bi bi-tags me-3"></i>
+						<div class="text-start">
+							<div class="fw-bold">Manage Statuses</div>
+							<small class="opacity-75">Update tracking statuses</small>
+						</div>
+					</a>
+				</div>
+			</div>
+		</div>
+
+		<!-- System Status -->
+		<div class="card mb-4">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-shield-check"></i>
+					System Health
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<div class="d-flex align-items-center">
+						<i class="bi bi-database text-success me-2"></i>
+						<span class="small fw-semibold">Database</span>
+					</div>
+					<span class="badge bg-success">
+						<i class="bi bi-check-lg"></i>
+						Connected
+					</span>
+				</div>
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<div class="d-flex align-items-center">
+						<i class="bi bi-envelope text-warning me-2"></i>
+						<span class="small fw-semibold">Email Service</span>
+					</div>
+					<span class="badge bg-warning text-dark">
+						<i class="bi bi-exclamation-triangle"></i>
+						Not Setup
+					</span>
+				</div>
+				<div class="d-flex justify-content-between align-items-center mb-0">
+					<div class="d-flex align-items-center">
+						<i class="bi bi-people text-info me-2"></i>
+						<span class="small fw-semibold">Active Users</span>
+					</div>
+					<span class="badge bg-info">
+						<%= stats.totalUsers %>
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Performance Metrics -->
+		<div class="card">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-graph-up"></i>
+					Performance
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="mb-3">
+					<div class="d-flex justify-content-between align-items-center mb-1">
+						<small class="fw-semibold">Delivery Rate</small>
+						<small class="fw-bold text-success">
+							<%= stats.totalShipments > 0 ? ((stats.delivered / stats.totalShipments) * 100).toFixed(1) : 0 %>%
+						</small>
+					</div>
+					<div class="progress" style="height: 6px;">
+						<div id="deliveryRateBar" class="progress-bar bg-success"></div>
+					</div>
+				</div>
+				<div class="mb-3">
+					<div class="d-flex justify-content-between align-items-center mb-1">
+						<small class="fw-semibold">On Time Rate</small>
+						<small class="fw-bold text-primary">94.2%</small>
+					</div>
+					<div class="progress" style="height: 6px;">
+						<div class="progress-bar" style="width: 94.2%"></div>
+					</div>
+				</div>
+				<div class="mb-0">
+					<div class="d-flex justify-content-between align-items-center mb-1">
+						<small class="fw-semibold">Customer Satisfaction</small>
+						<small class="fw-bold text-warning">4.8/5</small>
+					</div>
+					<div class="progress" style="height: 6px;">
+						<div class="progress-bar bg-warning" style="width: 96%"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script id="stats-json" type="application/json"><%- JSON.stringify(stats || {}) %></script>
+<script>
+// Initialize Charts
+document.addEventListener('DOMContentLoaded', function() {
+	// Embed stats as JSON to avoid EJS in JS expressions
+	const statsScript = document.getElementById('stats-json');
+	let statsData = {};
+	try { statsData = JSON.parse(statsScript?.textContent || '{}'); } catch (e) { statsData = {}; }
+
+	// Apply dynamic colors to status badges
+	document.querySelectorAll('.status-badge').forEach(function(el){
+		const color = el.getAttribute('data-color') || '#6c757d';
+		el.style.backgroundColor = color;
+		el.style.color = '#fff';
+	});
+
+	// Set delivery rate progress bar width
+	const deliveryBar = document.getElementById('deliveryRateBar');
+	if (deliveryBar) {
+		const total = Number(statsData.totalShipments) || 0;
+		const delivered = Number(statsData.delivered) || 0;
+		const pct = total > 0 ? (delivered / total) * 100 : 0;
+		deliveryBar.style.width = pct + '%';
+	}
+
+	// Shipments Overview Chart
+	const shipmentsCtx = document.getElementById('shipmentsChart');
+	if (shipmentsCtx) {
+		new Chart(shipmentsCtx, {
+			type: 'line',
+			data: {
+				labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+				datasets: [{
+					label: 'Shipments Created',
+					data: [12, 19, 15, 22],
+					borderColor: 'rgb(99, 102, 241)',
+					backgroundColor: 'rgba(99, 102, 241, 0.1)',
+					tension: 0.4
+				}, {
+					label: 'Delivered',
+					data: [8, 16, 12, 20],
+					borderColor: 'rgb(16, 185, 129)',
+					backgroundColor: 'rgba(16, 185, 129, 0.1)',
+					tension: 0.4
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top'
+					}
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						grid: {
+							color: 'rgba(0, 0, 0, 0.1)'
+						}
+					},
+					x: {
+						grid: {
+							display: false
+						}
+					}
+				}
+			}
+		});
+	}
+
+	// Status Distribution Chart
+	const statusCtx = document.getElementById('statusChart');
+	if (statusCtx) {
+		new Chart(statusCtx, {
+			type: 'doughnut',
+			data: {
+				labels: ['Delivered', 'In Transit', 'Pending'],
+				datasets: [{
+					data: [ (statsData.delivered || 0), (statsData.inTransit || 0), (statsData.pending || 0) ],
+					backgroundColor: [
+						'rgb(16, 185, 129)',
+						'rgb(6, 182, 212)',
+						'rgb(245, 158, 11)'
+					],
+					borderWidth: 0
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				plugins: {
+					legend: {
+						display: false
+					}
+				},
+				cutout: '70%'
+			}
+		});
+	}
+});
+</script>

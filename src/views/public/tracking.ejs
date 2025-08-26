@@ -1,0 +1,1585 @@
+<% layout('layouts/public') %>
+
+<style>
+/* Enhanced Map Styles */
+#trackingMap {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-popup {
+    max-width: 200px;
+}
+
+.mapboxgl-popup-content {
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.marker-pulse {
+    animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(253, 126, 20, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(253, 126, 20, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(253, 126, 20, 0);
+    }
+}
+
+/* Aviation Route Styles */
+.flight-path {
+    stroke-dasharray: 10, 5;
+    animation: flight-path-animation 3s linear infinite;
+}
+
+@keyframes flight-path-animation {
+    0% {
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dashoffset: 30;
+    }
+}
+
+.plane-icon {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(45deg);
+    position: relative;
+    animation: plane-fly 4s ease-in-out infinite;
+}
+
+@keyframes plane-fly {
+    0%, 100% {
+        transform: rotate(45deg) scale(1);
+    }
+    50% {
+        transform: rotate(45deg) scale(1.1);
+    }
+}
+
+@keyframes plane-pulse {
+    0%, 100% {
+        box-shadow: 0 0 30px rgba(0, 123, 255, 0.6), 0 0 60px rgba(0, 123, 255, 0.3);
+        opacity: 0.95;
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(0, 123, 255, 0.8), 0 0 80px rgba(0, 123, 255, 0.4);
+        opacity: 1;
+    }
+}
+/* Summary chips and responsive tweaks */
+.summary-badges {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    padding: 0 2rem 1rem 2rem;
+}
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .4rem .75rem;
+    border-radius: 9999px;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+}
+.chip i { color: #2563eb; }
+@media (max-width: 768px) {
+    #trackingMap { height: 360px; }
+}
+
+/* Enhanced tracking result design */
+.tracking-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem 2rem;
+    border-radius: 16px 16px 0 0;
+    position: relative;
+    overflow: hidden;
+}
+.tracking-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.tracking-header * { position: relative; z-index: 1; }
+.tracking-number-large {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.route-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+.route-arrow {
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.8);
+}
+.status-badge-large {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    background: #f8fafc;
+}
+.detail-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+.detail-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+.detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+.detail-title {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.detail-content {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    padding: 2rem;
+}
+.action-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: #475569;
+}
+.action-card:hover {
+    border-color: #3b82f6;
+    background: #f8fafc;
+    transform: translateY(-2px);
+    color: #3b82f6;
+}
+.action-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+.action-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 2rem 1rem 2rem;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+.timeline-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .tracking-number-large { font-size: 1.5rem; }
+    .route-display { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .detail-grid { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem; }
+    .actions-grid { grid-template-columns: repeat(2, 1fr); }
+    .timeline-header { flex-direction: column; gap: 1rem; text-align: center; }
+}
+
+.flight-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.route-legend {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend-marker {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.map-error {
+    padding: 40px;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #6c757d;
+}
+
+.map-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+/* Temporary flag timeline styles */
+.progress-step.temp-flag {
+    opacity: 1 !important;
+    background: rgba(255, 193, 7, 0.08);
+    border: 1px solid rgba(255, 193, 7, 0.35);
+}
+.progress-step.temp-flag .step-icon {
+    background: #fff3cd;
+    border-color: #ffecb5;
+    color: #d39e00;
+}
+.progress-step.temp-flag.temp-warning {
+    background: rgba(255, 193, 7, 0.12);
+    border-color: rgba(255, 193, 7, 0.45);
+}
+.progress-step.temp-flag.temp-danger {
+    background: rgba(220, 53, 69, 0.10);
+    border-color: rgba(220, 53, 69, 0.35);
+}
+.progress-step.temp-flag.temp-danger .step-icon {
+    background: #f8d7da;
+    border-color: #f1aeb5;
+    color: #dc3545;
+}
+.progress-step.temp-flag.temp-info {
+    background: rgba(13, 202, 240, 0.10);
+    border-color: rgba(13, 202, 240, 0.35);
+}
+.progress-step.temp-flag.temp-info .step-icon {
+    background: #cff4fc;
+    border-color: #b6effb;
+    color: #0dcaf0;
+}
+</style>
+
+<!-- Search Section -->
+<div class="search-card">
+    <h1><i class="bi bi-search me-2"></i>Track Your Shipment</h1>
+    <p>Enter your tracking number to get real-time updates on your package</p>
+    
+    <form class="search-form" id="trackingForm">
+        <div class="input-group mb-3">
+            <input 
+                type="text" 
+                class="form-control search-input" 
+                id="trackingInput"
+                placeholder="Enter tracking number (e.g., EMI-240101-ABC12)"
+                required
+            >
+            <button class="btn btn-primary search-btn" type="submit">
+                <i class="bi bi-search me-2"></i>Track Package
+            </button>
+        </div>
+    </form>
+    
+    <div class="error-message" id="errorMessage"></div>
+</div>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner" id="loadingSpinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Searching for your package...</p>
+</div>
+
+<!-- Results Section -->
+<div id="resultsSection" style="display: none;">
+    <!-- Enhanced Shipment Overview -->
+    <div class="results-card" id="shipmentCard">
+        <div class="tracking-header">
+            <div class="tracking-number-large" id="trackingNumber"></div>
+            <div class="route-display">
+                <div><i class="bi bi-geo-alt me-2"></i><span id="originLocation"></span></div>
+                <i class="bi bi-arrow-right route-arrow"></i>
+                <div><i class="bi bi-geo-alt-fill me-2"></i><span id="destinationLocation"></span></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="status-badge-large" id="currentStatus">
+                    <i class="bi bi-clock"></i>
+                    <span>Loading...</span>
+                </span>
+                <div class="text-end">
+                    <div class="small opacity-75" id="lastUpdate">Last updated: --</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Detail Cards -->
+        <div class="detail-grid">
+            <div class="detail-card">
+                <div class="detail-icon"><i class="bi bi-box-seam"></i></div>
+                <div class="detail-title">Item</div>
+                <div class="detail-content" id="itemDescription">--</div>
+            </div>
+            <div class="detail-card">
+                <div class="detail-icon"><i class="bi bi-gear"></i></div>
+                <div class="detail-title">Service</div>
+                <div class="detail-content" id="serviceType">--</div>
+            </div>
+            <div class="detail-card">
+                <div class="detail-icon"><i class="bi bi-box"></i></div>
+                <div class="detail-title">Weight</div>
+                <div class="detail-content" id="weight">--</div>
+            </div>
+            <div class="detail-card">
+                <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
+                <div class="detail-title">Shipped</div>
+                <div class="detail-content" id="shippedDate">--</div>
+            </div>
+            <div class="detail-card">
+                <div class="detail-icon"><i class="bi bi-geo-alt"></i></div>
+                <div class="detail-title">Current Location</div>
+                <div class="detail-content" id="currentLocation">--</div>
+            </div>
+            <div class="detail-card">
+                <div class="detail-icon"><i class="bi bi-truck"></i></div>
+                <div class="detail-title">Est. Delivery</div>
+                <div class="detail-content" id="eta">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Quick Actions -->
+    <div class="results-card">
+        <div class="timeline-header">
+            <div class="timeline-title">
+                <div class="timeline-icon"><i class="bi bi-lightning"></i></div>
+                Quick Actions
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="refreshTracking()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+        </div>
+        <div class="actions-grid">
+            <div class="action-card" onclick="shareTracking()">
+                <div class="action-icon"><i class="bi bi-share"></i></div>
+                <div class="action-title">Share</div>
+            </div>
+            <div class="action-card" onclick="showQRCode()">
+                <div class="action-icon"><i class="bi bi-qr-code"></i></div>
+                <div class="action-title">QR Code</div>
+            </div>
+            <div class="action-card" onclick="downloadPDF()">
+                <div class="action-icon"><i class="bi bi-download"></i></div>
+                <div class="action-title">PDF</div>
+            </div>
+            <div class="action-card" onclick="enableNotifications()">
+                <div class="action-icon"><i class="bi bi-bell"></i></div>
+                <div class="action-title">Notify</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Timeline Card -->
+    <div class="results-card" id="progressCard">
+        <div class="timeline-header">
+            <div class="timeline-title">
+                <div class="timeline-icon"><i class="bi bi-clock-history"></i></div>
+                Tracking Progress
+            </div>
+        </div>
+        <div class="progress-container">
+            <div id="tempFlagBanner" class="alert" style="display:none;"></div>
+            <div class="progress-timeline" id="progressTimeline">
+                <!-- Progress steps will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Map Card -->
+    <div class="results-card" id="mapCard">
+        <div class="progress-container">
+            <h3 class="mb-4">
+                <i class="bi bi-geo me-2"></i>
+                Live Route Map
+            </h3>
+            <div class="position-relative">
+                <div id="trackingMap"></div>
+                <div id="mapLoading" class="map-loading" style="display:none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading map...</span>
+                    </div>
+                </div>
+                <div id="mapError" class="map-error" style="display:none;">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
+                    <p class="mt-2">Unable to load map. Location data may not be available.</p>
+                </div>
+            </div>
+            <div class="summary-badges" id="summaryBadges" style="display:none;"></div>
+            <div class="route-legend">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="legend-item">
+                            <div class="legend-marker" style="background: #0d6efd;"></div>
+                            <div>
+                                <strong>Origin</strong><br>
+                                <small id="mapOriginLabel" class="text-muted">--</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="legend-item">
+                            <div class="legend-marker marker-pulse" style="background: #fd7e14;"></div>
+                            <div>
+                                <strong>Current Location</strong><br>
+                                <small id="mapCurrentLabel" class="text-muted">--</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="legend-item">
+                            <div class="legend-marker" style="background: #198754;"></div>
+                            <div>
+                                <strong>Destination</strong><br>
+                                <small id="mapDestinationLabel" class="text-muted">--</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <div class="row align-items-center">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="centerMap()">
+                                <i class="bi bi-crosshair"></i> Center Map
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status History Card -->
+    <div class="results-card" id="historyCard">
+        <div class="timeline-header">
+            <div class="timeline-title">
+                <div class="timeline-icon"><i class="bi bi-list-ul"></i></div>
+                Detailed History
+            </div>
+        </div>
+        <div class="progress-container">
+            <div id="statusHistory">
+                <!-- History items will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Simple QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Tracking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrcode" class="mb-3"></div>
+                <p class="text-muted">Scan to track on mobile</p>
+                <input type="text" class="form-control" id="trackingURL" readonly>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const trackingForm = document.getElementById('trackingForm');
+    const trackingInput = document.getElementById('trackingInput');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const resultsSection = document.getElementById('resultsSection');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Check URL for tracking number parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackingParam = urlParams.get('tracking');
+    if (trackingParam) {
+        trackingInput.value = trackingParam;
+        searchTracking(trackingParam);
+    }
+
+    trackingForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const trackingNumber = trackingInput.value.trim();
+        if (trackingNumber) {
+            searchTracking(trackingNumber);
+        }
+    });
+
+    async function searchTracking(trackingNumber) {
+        // Show loading state
+        loadingSpinner.style.display = 'block';
+        resultsSection.style.display = 'none';
+        errorMessage.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/track/${encodeURIComponent(trackingNumber)}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                displayTrackingResults(data);
+            } else {
+                showError(data.error || 'Shipment not found');
+            }
+        } catch (error) {
+            console.error('Tracking error:', error);
+            showError('Unable to fetch tracking information. Please try again.');
+        } finally {
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    function displayTrackingResults(data) {
+        const shipment = data && data.shipment ? data.shipment : {};
+        const status_history = Array.isArray(data && data.status_history) ? data.status_history : [];
+        const steps = Array.isArray(data && data.steps)
+            ? data.steps
+            : (Array.isArray(data && data.progress_statuses) ? data.progress_statuses : []);
+        const flags = Array.isArray(data && data.flags) ? data.flags : [];
+
+        // Update basic shipment info
+        document.getElementById('trackingNumber').textContent = shipment.tracking_number || 'Unknown';
+        document.getElementById('originLocation').textContent = shipment.origin || 'Origin';
+        document.getElementById('destinationLocation').textContent = shipment.destination || 'Destination';
+        
+        const statusBadge = document.getElementById('currentStatus');
+        const currentStatus = shipment.current_status || {};
+        const statusName = currentStatus.name || 'Unknown';
+        const statusColor = currentStatus.color || '#6c757d';
+        statusBadge.innerHTML = `<i class="bi bi-clock"></i><span>${statusName}</span>`;
+        statusBadge.style.backgroundColor = statusColor;
+        statusBadge.className = 'status-badge-large';
+
+        // Update simple detail fields
+        document.getElementById('itemDescription').textContent = formatItem(shipment.package_description, shipment.package_type);
+        document.getElementById('serviceType').textContent = formatServiceType(shipment.service_type);
+        document.getElementById('weight').textContent = formatWeightLbs(shipment.package_weight);
+        document.getElementById('currentLocation').textContent = shipment.current_location || 'N/A';
+        document.getElementById('eta').textContent = shipment.eta ? formatDate(shipment.eta) : 'Not available';
+        document.getElementById('shippedDate').textContent = formatDate(shipment.created_at);
+
+        // Build summary badges row (compact important info)
+        try {
+            const badges = document.getElementById('summaryBadges');
+            if (badges) {
+                const chips = [];
+                if (shipment.priority) chips.push(`<span class=\"chip\"><i class=\"bi bi-lightning-charge\"></i>${formatPriority(shipment.priority)}</span>`);
+                if (shipment.service_type) chips.push(`<span class=\"chip\"><i class=\"bi bi-gear\"></i>${formatServiceType(shipment.service_type)}</span>`);
+                if (shipment.package_weight) chips.push(`<span class=\"chip\"><i class=\"bi bi-box\"></i>${formatWeightLbs(shipment.package_weight)}</span>`);
+                if (shipment.package_dimensions) chips.push(`<span class=\"chip\"><i class=\"bi bi-rulers\"></i>${shipment.package_dimensions}</span>`);
+                if (shipment.incoterms) chips.push(`<span class=\"chip\"><i class=\"bi bi-briefcase\"></i>${shipment.incoterms}</span>`);
+                badges.innerHTML = chips.join('');
+                badges.style.display = chips.length ? 'flex' : 'none';
+            }
+        } catch (e) { /* ignore */ }
+
+        // Banner for latest temporary flag (if any) and store flags for timeline insertion
+        window.__latestFlags = flags;
+        renderTempFlag(flags);
+
+        // Build progress timeline using active steps only
+        buildProgressTimeline(steps, status_history);
+
+        // Build detailed history
+        buildStatusHistory(status_history);
+
+        // Show results with simple animation
+        resultsSection.style.display = 'block';
+        resultsSection.style.opacity = '0';
+        resultsSection.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            resultsSection.style.transition = 'all 0.5s ease';
+            resultsSection.style.opacity = '1';
+            resultsSection.style.transform = 'translateY(0)';
+        }, 100);
+
+        // Update last updated time
+        const lastUpdate = document.getElementById('lastUpdate');
+        if (lastUpdate) {
+            lastUpdate.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // Update URL without page reload
+        const newUrl = `${window.location.pathname}?tracking=${encodeURIComponent(shipment.tracking_number)}`;
+        window.history.pushState({}, '', newUrl);
+
+        // Build live map if Mapbox available
+        try {
+            if (window.mapboxgl && window.MAPBOX_TOKEN) {
+                buildLiveMap(shipment, data.status_history);
+            }
+        } catch (e) {
+            console.warn('Map render skipped:', e);
+        }
+    }
+
+    function buildProgressTimeline(progressStatuses, statusHistory) {
+        const timeline = document.getElementById('progressTimeline');
+        if (!timeline) return;
+        
+        timeline.innerHTML = '';
+
+        const list = Array.isArray(progressStatuses) ? progressStatuses : [];
+        const history = Array.isArray(statusHistory) ? statusHistory : [];
+        const allFlags = Array.isArray(window.__latestFlags) ? window.__latestFlags : [];
+        // Map status name to icon for consistent visuals
+        const statusIcon = {
+            'Order Received': 'bi-clipboard-check',
+            'Registered': 'bi-clipboard-check',
+            'Pending': 'bi-hourglass',
+            'Picked Up': 'bi-bag-check',
+            'Processing': 'bi-gear',
+            'At Sorting Facility': 'bi-building',
+            'Loaded for Transportation': 'bi-box-seam',
+            'In Transit': 'bi-truck',
+            'Arrived at State/City': 'bi-geo-alt',
+            'Out for Delivery': 'bi-bicycle',
+            'Delivered': 'bi-check-circle',
+            'Customs Clearance': 'bi-shield-lock',
+            'Pending Clearance': 'bi-shield-lock',
+            'On Hold': 'bi-pause-circle',
+            'Delayed': 'bi-exclamation-triangle',
+            'Pending Reschedule': 'bi-calendar-event',
+            'Hold for Pickup': 'bi-archive',
+            'Under Investigation': 'bi-shield-exclamation',
+            'Exception': 'bi-exclamation-octagon',
+            'Failed Delivery': 'bi-x-circle',
+            'Returned to Sender': 'bi-arrow-return-left',
+            'Cancelled': 'bi-slash-circle',
+            'Damaged': 'bi-bandaid',
+            'Lost': 'bi-question-circle'
+        };
+        
+        if (list.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'text-muted';
+            empty.textContent = 'No tracking progress available yet.';
+            timeline.appendChild(empty);
+            return;
+        }
+
+        // Determine where to inject temporary flags: after current if present, else after last completed
+        const lastCompletedIndex = list.reduce((acc, s, i) => (s.is_completed ? i : acc), -1);
+        const currentIndex = list.findIndex(s => s.is_current);
+        const anchorIndex = currentIndex >= 0 ? currentIndex : lastCompletedIndex;
+
+        list.forEach((status, index) => {
+            const step = document.createElement('div');
+            step.className = 'progress-step';
+            
+            if (status.is_completed) {
+                step.classList.add('completed');
+            }
+            if (status.is_current) {
+                step.classList.add('current');
+            }
+            if (status.is_upcoming) {
+                step.classList.add('upcoming');
+            }
+
+            const historyItem = statusHistory.find(h => h.status_name === status.name);
+            const timeInfo = historyItem ? formatDateTime(historyItem.changed_at) : 
+                             status.is_upcoming ? 'Pending' : '';
+            const location = historyItem && historyItem.location ? ` • ${historyItem.location}` : '';
+
+            const iconClass = status.is_completed
+                ? 'bi-check-lg'
+                : status.is_current
+                    ? (statusIcon[status.name] || 'bi-hourglass-split')
+                    : status.is_upcoming
+                        ? (statusIcon[status.name] || 'bi-dot')
+                        : (statusIcon[status.name] || 'bi-circle');
+            const iconHtml = `<i class="bi ${iconClass}"></i>`;
+
+            step.innerHTML = `
+                <div class="step-icon">
+                    ${iconHtml}
+                </div>
+                <div class="step-content">
+                    <div class="step-title">${status.name}</div>
+                    <div class="step-description">${status.description || ''}</div>
+                    ${timeInfo ? `<div class="step-time">
+                        <i class="bi bi-clock"></i>
+                        ${timeInfo}${location}
+                    </div>` : ''}
+                </div>
+            `;
+
+            timeline.appendChild(step);
+
+            // Enhanced staggered animation
+            step.style.opacity = '0';
+            step.style.transform = 'translateX(-20px) scale(0.95)';
+            setTimeout(() => {
+                step.style.transition = 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)';
+                step.style.opacity = '1';
+                step.style.transform = 'translateX(0) scale(1)';
+            }, index * 120);
+
+            // Insert temporary flags between anchor (current or last completed) and the next upcoming
+            if (index === anchorIndex && allFlags.length > 0) {
+                allFlags.forEach((flag, fi) => {
+                    const temp = document.createElement('div');
+                    temp.className = 'progress-step temp-flag';
+                    const icon = flag.icon || 'bi-exclamation-triangle';
+                    const when = flag.changed_at ? formatDateTime(flag.changed_at) : '';
+                    const where = flag.location ? ` • ${flag.location}` : '';
+                    const note = flag.note ? ` — ${flag.note}` : '';
+                    const tone = flag.tone || 'warning';
+                    const toneClass = tone === 'danger' ? 'temp-danger' : (tone === 'warning' ? 'temp-warning' : 'temp-info');
+                    temp.classList.add(toneClass);
+                    temp.innerHTML = `
+                        <div class="step-icon">
+                            <i class="bi ${icon}"></i>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">${flag.name}</div>
+                            <div class="step-description">${flag.message || ''}</div>
+                            <div class="step-time"><i class="bi bi-clock"></i> ${when}${where}${note}</div>
+                        </div>
+                    `;
+                    timeline.appendChild(temp);
+                    temp.style.opacity = '0';
+                    temp.style.transform = 'translateX(-20px) scale(0.95)';
+                    setTimeout(() => {
+                        temp.style.transition = 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)';
+                        temp.style.opacity = '1';
+                        temp.style.transform = 'translateX(0) scale(1)';
+                    }, (index + fi + 1) * 120);
+                });
+            }
+        });
+    }
+
+    function buildStatusHistory(statusHistory) {
+        const historyContainer = document.getElementById('statusHistory');
+        historyContainer.innerHTML = '';
+
+        if (statusHistory.length === 0) {
+            historyContainer.innerHTML = '<p class="text-muted">No status updates available yet.</p>';
+            return;
+        }
+
+        statusHistory.reverse().forEach((item, index) => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'detail-row';
+            historyItem.style.animationDelay = `${index * 50}ms`;
+            
+            const statusColor = item.status_color || '#6c757d';
+            
+            historyItem.innerHTML = `
+                <div>
+                    <div class="fw-bold" style="color: ${statusColor};">
+                        <i class="bi bi-circle-fill me-2" style="font-size: 0.5rem;"></i>
+                        ${item.status_name}
+                    </div>
+                    <div class="small text-muted">
+                        ${formatDateTime(item.changed_at)}
+                        ${item.location ? ` • ${item.location}` : ''}
+                    </div>
+                    ${item.note ? `<div class="small mt-1">${item.note}</div>` : ''}
+                </div>
+            `;
+            
+            historyContainer.appendChild(historyItem);
+        });
+    }
+
+    function renderTempFlag(flags) {
+        const banner = document.getElementById('tempFlagBanner');
+        if (!banner) return;
+        if (!flags || flags.length === 0) {
+            banner.style.display = 'none';
+            return;
+        }
+        const latest = flags[flags.length - 1];
+        const toneClass = latest.tone === 'danger' ? 'alert-danger' : latest.tone === 'warning' ? 'alert-warning' : 'alert-primary';
+        banner.className = `alert ${toneClass}`;
+        const when = latest.changed_at ? ` • ${formatDateTime(latest.changed_at)}` : '';
+        const where = latest.location ? ` • ${latest.location}` : '';
+        banner.innerHTML = `<i class="bi ${latest.icon || 'bi-info-circle'} me-2"></i>${latest.message || latest.name}${when}${where}`;
+        banner.style.display = 'block';
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        resultsSection.style.display = 'none';
+    }
+
+    function formatServiceType(serviceType) {
+        const types = {
+            'standard': '📦 Standard',
+            'express': '⚡ Express',
+            'overnight': '🌙 Overnight',
+            'freight': '🚛 General Freight',
+            'live_animal': '🐕 Live Animal',
+            'air_freight': '✈️ Air Freight',
+            'sea_freight': '🚢 Sea Freight',
+            'land_freight': '🚛 Land Freight'
+        };
+        return types[serviceType] || serviceType;
+    }
+
+    function formatItem(description, type) {
+        if (description && String(description).trim().length > 0) return String(description).trim();
+        if (type && String(type).trim().length > 0) return String(type).replaceAll('_', ' ');
+        return 'N/A';
+    }
+
+    function formatPriority(priority) {
+        const priorities = {
+            'low': '⬇️ Low',
+            'normal': '➡️ Normal',
+            'high': '⬆️ High',
+            'urgent': '🔥 Urgent'
+        };
+        return priorities[priority] || priority;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function formatDateTime(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatWeightLbs(weightKg) {
+        if (!weightKg || isNaN(weightKg)) return 'N/A';
+        const lbs = Number(weightKg) * 2.20462;
+        return `${lbs.toFixed(2)} lb`;
+    }
+
+    function calculateDaysInTransit(createdAt) {
+        if (!createdAt) return 0;
+        const created = new Date(createdAt);
+        const now = new Date();
+        const diffTime = Math.abs(now - created);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    function calculateEstimatedDays(eta) {
+        if (!eta) return '--';
+        const etaDate = new Date(eta);
+        const now = new Date();
+        const diffTime = etaDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays > 0 ? diffDays : 0;
+    }
+
+    function formatLocation(location) {
+        if (!location) return null;
+        // Simple formatting - you could enhance this with city/state parsing
+        return location.charAt(0).toUpperCase() + location.slice(1);
+    }
+
+    // Interactive Features
+    function shareTracking() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Track My Package',
+                text: `Track my package: ${document.getElementById('trackingNumber').textContent}`,
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Tracking link copied to clipboard!');
+            });
+        }
+    }
+
+    function downloadPDF() {
+        alert('PDF download feature coming soon!');
+    }
+
+    function enableNotifications() {
+        if ('Notification' in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    alert('Notifications enabled!');
+                } else {
+                    alert('Please enable notifications in your browser settings.');
+                }
+            });
+        } else {
+            alert('Your browser doesn\'t support notifications.');
+        }
+    }
+
+    function showQRCode() {
+        const trackingURL = window.location.href;
+        document.getElementById('trackingURL').value = trackingURL;
+        
+        // Clear previous QR code
+        const qrDiv = document.getElementById('qrcode');
+        qrDiv.innerHTML = '';
+        
+        // Generate QR code if library is available
+        if (typeof QRCode !== 'undefined') {
+            QRCode.toCanvas(qrDiv, trackingURL, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#0d6efd',
+                    light: '#ffffff'
+                }
+            }, function (error) {
+                if (error) {
+                    qrDiv.innerHTML = '<p class="text-muted">QR Code generation failed</p>';
+                }
+            });
+        } else {
+            qrDiv.innerHTML = '<p class="text-muted">QR Code library not loaded</p>';
+        }
+        
+        new bootstrap.Modal(document.getElementById('qrModal')).show();
+    }
+
+    // Simple notification function
+    function showNotification(message) {
+        alert(message); // Simple fallback - can be enhanced later
+    }
+
+    function refreshTracking() {
+        const trackingNumber = document.getElementById('trackingNumber').textContent;
+        if (trackingNumber && trackingNumber !== 'Unknown') {
+            searchTracking(trackingNumber);
+        }
+    }
+
+    // Auto-refresh every 30 seconds when page is visible
+    let refreshInterval;
+    
+    function startAutoRefresh() {
+        refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible' && 
+                document.getElementById('resultsSection').style.display !== 'none') {
+                const trackingNumber = document.getElementById('trackingNumber').textContent;
+                if (trackingNumber && trackingNumber !== 'Unknown') {
+                    searchTracking(trackingNumber);
+                }
+            }
+        }, 30000); // 30 seconds
+    }
+
+    function stopAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    }
+
+    // Start auto-refresh when results are shown
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    });
+
+    // Global map variable
+    let trackingMapInstance = null;
+    let globalCoords = [];
+    
+    // Map helpers
+    function buildLiveMap(shipment, statusHistory) {
+        console.log('Building live map with shipment data:', shipment);
+        
+        const container = document.getElementById('trackingMap');
+        const loadingEl = document.getElementById('mapLoading');
+        const errorEl = document.getElementById('mapError');
+        
+        if (!container) {
+            console.error('Map container not found');
+            return;
+        }
+        
+        // Show loading state
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (errorEl) errorEl.style.display = 'none';
+        
+        try {
+            if (!window.mapboxgl || !window.MAPBOX_TOKEN) {
+                console.error('Mapbox not available or token missing');
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'block';
+                return;
+            }
+            
+            mapboxgl.accessToken = window.MAPBOX_TOKEN;
+            
+            // Clear existing map instance
+            if (trackingMapInstance) {
+                trackingMapInstance.remove();
+                trackingMapInstance = null;
+            }
+            container.innerHTML = '';
+
+            // Create new map
+            trackingMapInstance = new mapboxgl.Map({
+                container: 'trackingMap',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [-96.9, 37.6],
+                zoom: 3,
+                attributionControl: false
+            });
+
+            trackingMapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            trackingMapInstance.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+
+            const coords = [];
+            const routeCoords = [];
+            globalCoords = coords; // Store for centerMap function
+            
+            // Update labels
+            document.getElementById('mapOriginLabel').textContent = shipment.origin || 'Not set';
+            document.getElementById('mapCurrentLabel').textContent = shipment.current_location || 'In Transit';
+            document.getElementById('mapDestinationLabel').textContent = shipment.destination || 'Not set';
+            
+            // Origin marker with custom element
+            if (isFiniteNum(shipment.sender_lng) && isFiniteNum(shipment.sender_lat)) {
+                const originCoords = [Number(shipment.sender_lng), Number(shipment.sender_lat)];
+                coords.push(originCoords);
+                routeCoords.push(originCoords);
+                
+                const el = document.createElement('div');
+                el.className = 'marker';
+                el.style.width = '35px';
+                el.style.height = '35px';
+                el.style.borderRadius = '50%';
+                el.style.border = '3px solid white';
+                el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+                el.style.backgroundColor = '#0d6efd';
+                el.style.cursor = 'pointer';
+                
+                new mapboxgl.Marker(el)
+                    .setLngLat(originCoords)
+                    .setPopup(new mapboxgl.Popup({ offset: 25 })
+                        .setHTML(`<strong>📍 Origin</strong><br>${shipment.origin || ''}<br><small>${shipment.sender_address || ''}</small>`))
+                    .addTo(trackingMapInstance);
+            }
+            
+            // Destination marker with custom element
+            if (isFiniteNum(shipment.receiver_lng) && isFiniteNum(shipment.receiver_lat)) {
+                const destCoords = [Number(shipment.receiver_lng), Number(shipment.receiver_lat)];
+                coords.push(destCoords);
+                routeCoords.push(destCoords);
+                
+                const el = document.createElement('div');
+                el.className = 'marker';
+                el.style.width = '35px';
+                el.style.height = '35px';
+                el.style.borderRadius = '50%';
+                el.style.border = '3px solid white';
+                el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+                el.style.backgroundColor = '#198754';
+                el.style.cursor = 'pointer';
+                
+                new mapboxgl.Marker(el)
+                    .setLngLat(destCoords)
+                    .setPopup(new mapboxgl.Popup({ offset: 25 })
+                        .setHTML(`<strong>📍 Destination</strong><br>${shipment.destination || ''}<br><small>${shipment.receiver_address || ''}</small>`))
+                    .addTo(trackingMapInstance);
+            }
+            
+            // Current location marker with animation
+            const latestLoc = (shipment.current_location || '').trim();
+            if (isFiniteNum(shipment.current_lng) && isFiniteNum(shipment.current_lat)) {
+                const curCoords = [Number(shipment.current_lng), Number(shipment.current_lat)];
+                coords.push(curCoords);
+                
+                const el = document.createElement('div');
+                el.className = 'marker';
+                el.style.width = '40px';
+                el.style.height = '40px';
+                el.style.borderRadius = '50%';
+                el.style.border = '4px solid white';
+                el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+                el.style.backgroundColor = '#fd7e14';
+                el.style.cursor = 'pointer';
+                el.style.animation = 'pulse 2s infinite';
+                
+                // Add pulse animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { box-shadow: 0 0 0 0 rgba(253, 126, 20, 0.7); }
+                        70% { box-shadow: 0 0 0 20px rgba(253, 126, 20, 0); }
+                        100% { box-shadow: 0 0 0 0 rgba(253, 126, 20, 0); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                new mapboxgl.Marker(el)
+                    .setLngLat(curCoords)
+                    .setPopup(new mapboxgl.Popup({ offset: 25 })
+                        .setHTML(`<strong>📍 Current Location</strong><br>${latestLoc || 'In Transit'}<br><small>Last updated: ${new Date().toLocaleString()}</small>`))
+                    .addTo(trackingMapInstance);
+            } else if (latestLoc && routeCoords.length >= 2) {
+                // If no precise current location, estimate based on progress
+                const progress = estimateProgress(shipment, statusHistory);
+                const estimatedCoords = interpolateRoute(routeCoords[0], routeCoords[1], progress);
+                if (estimatedCoords) {
+                    coords.push(estimatedCoords);
+                    
+                    const el = document.createElement('div');
+                    el.className = 'marker';
+                    el.style.width = '35px';
+                    el.style.height = '35px';
+                    el.style.borderRadius = '50%';
+                    el.style.border = '3px solid white';
+                    el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+                    el.style.backgroundColor = '#fd7e14';
+                    el.style.cursor = 'pointer';
+                    el.style.opacity = '0.8';
+                    
+                    new mapboxgl.Marker(el)
+                        .setLngLat(estimatedCoords)
+                        .setPopup(new mapboxgl.Popup({ offset: 25 })
+                            .setHTML(`<strong>📍 Estimated Position</strong><br>${latestLoc}<br><small>Based on shipment progress</small>`))
+                        .addTo(trackingMapInstance);
+                }
+            }
+
+            // Draw route line if we have coordinates
+            if (routeCoords.length >= 2) {
+                trackingMapInstance.on('load', async () => {
+                    // Hide loading state
+                    if (loadingEl) loadingEl.style.display = 'none';
+                    
+                    // If current location exists, split route into A->B (completed) and B->C (remaining)
+                    const hasCurrent = isFiniteNum(shipment.current_lat) && isFiniteNum(shipment.current_lng);
+                    if (hasCurrent) {
+                        const currentCoords = [Number(shipment.current_lng), Number(shipment.current_lat)];
+                        const completedPath = createCurvedFlightPath(routeCoords[0], currentCoords);
+                        const remainingPath = createCurvedFlightPath(currentCoords, routeCoords[1]);
+
+                        const totalDistance = calculateGreatCircleDistance(routeCoords[0], currentCoords) +
+                                              calculateGreatCircleDistance(currentCoords, routeCoords[1]);
+                        updateFlightInfo(totalDistance);
+
+                        // Completed (green solid)
+                        trackingMapInstance.addSource('completed-route', {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'Feature',
+                                'properties': {},
+                                'geometry': { 'type': 'LineString', 'coordinates': completedPath }
+                            }
+                        });
+                        trackingMapInstance.addLayer({
+                            'id': 'completed-route-glow', 'type': 'line', 'source': 'completed-route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#28a745', 'line-width': 12, 'line-opacity': 0.25, 'line-blur': 3 }
+                        });
+                        trackingMapInstance.addLayer({
+                            'id': 'completed-route-main', 'type': 'line', 'source': 'completed-route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#28a745', 'line-width': 6, 'line-opacity': 0.95 }
+                        });
+
+                        // Remaining (blue dashed)
+                        trackingMapInstance.addSource('remaining-route', {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'Feature',
+                                'properties': {},
+                                'geometry': { 'type': 'LineString', 'coordinates': remainingPath }
+                            }
+                        });
+                        trackingMapInstance.addLayer({
+                            'id': 'remaining-route-glow', 'type': 'line', 'source': 'remaining-route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#007bff', 'line-width': 12, 'line-opacity': 0.25, 'line-blur': 3 }
+                        });
+                        trackingMapInstance.addLayer({
+                            'id': 'remaining-route-main', 'type': 'line', 'source': 'remaining-route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#007bff', 'line-width': 6, 'line-opacity': 0.9, 'line-dasharray': [4, 2] }
+                        });
+
+                        // Plane moves only B -> C
+                        addAnimatedPlane(remainingPath);
+                    } else {
+                        // Single A -> C route
+                        const flightPath = createCurvedFlightPath(routeCoords[0], routeCoords[1]);
+                        const distance = calculateGreatCircleDistance(routeCoords[0], routeCoords[1]);
+                        updateFlightInfo(distance);
+
+                        trackingMapInstance.addSource('flight-route', {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'Feature',
+                                'properties': {},
+                                'geometry': { 'type': 'LineString', 'coordinates': flightPath }
+                            }
+                        });
+                        trackingMapInstance.addLayer({
+                            'id': 'flight-route-glow', 'type': 'line', 'source': 'flight-route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#007bff', 'line-width': 16, 'line-opacity': 0.3, 'line-blur': 4 }
+                        });
+                        trackingMapInstance.addLayer({
+                            'id': 'flight-route-main', 'type': 'line', 'source': 'flight-route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#007bff', 'line-width': 8, 'line-opacity': 0.9 }
+                        });
+                        addAnimatedPlane(flightPath);
+                    }
+
+                    // Animated dashed overlay
+                    trackingMapInstance.addLayer({
+                        'id': 'flight-route-dash',
+                        'type': 'line',
+                        'source': 'flight-route',
+                        'layout': {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                                                 'paint': {
+                             'line-color': '#ffffff',
+                             'line-width': 4,
+                             'line-opacity': 0.8,
+                             'line-dasharray': [4, 4]
+                         }
+                    });
+                    
+                    // Add animated plane icon
+                    // This block is now redundant as addAnimatedPlane handles this
+                    // addAnimatedPlane(flightPath); 
+                    
+                    // Animate the dashed line
+                    let dashOffset = 0;
+                    const animateDash = () => {
+                        dashOffset = (dashOffset + 0.5) % 12;
+                        trackingMapInstance.setPaintProperty('flight-route-dash', 'line-dasharray', [3, 3]);
+                        requestAnimationFrame(animateDash);
+                    };
+                    animateDash();
+                    
+                    // Fit map to show entire route with safe padding and a max zoom to avoid hiding segments
+                    const fitAll = (points) => {
+                        if (!points || points.length === 0) return;
+                        const bounds = new mapboxgl.LngLatBounds();
+                        points.forEach(coord => bounds.extend(coord));
+                        trackingMapInstance.fitBounds(bounds, { 
+                            padding: { top: 120, bottom: 140, left: 140, right: 140 },
+                            maxZoom: 7.5,
+                            duration: 1000
+                        });
+                    };
+
+                    // Prefer using flight path points if available so the arc is fully visible
+                    if (typeof flightPath !== 'undefined' && Array.isArray(flightPath) && flightPath.length) {
+                        fitAll(flightPath);
+                    } else if (trackingMapInstance.getSource('remaining-route')) {
+                        const remaining = trackingMapInstance.getSource('remaining-route')._data.geometry.coordinates;
+                        const completed = trackingMapInstance.getSource('completed-route')?._data.geometry.coordinates || [];
+                        fitAll([...(completed || []), ...(remaining || [])]);
+                    } else if (coords.length > 0) {
+                        fitAll(coords);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Map build error:', e);
+            // Hide loading and show error
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (errorEl) errorEl.style.display = 'block';
+        }
+    }
+    
+    // Center map function
+    function centerMap() {
+        if (trackingMapInstance && globalCoords && globalCoords.length > 0) {
+            const bounds = new mapboxgl.LngLatBounds();
+            globalCoords.forEach(coord => bounds.extend(coord));
+            trackingMapInstance.fitBounds(bounds, { 
+                padding: { top: 80, bottom: 80, left: 80, right: 80 },
+                duration: 1000
+            });
+        }
+    }
+    
+    function estimateProgress(shipment, statusHistory) {
+        // Estimate progress based on current permanent status id
+        const statusProgress = {
+            1: 0.10, // Registered
+            2: 0.20, // Picked Up
+            3: 0.35, // Loaded for Transportation
+            4: 0.60, // In Transit
+            5: 0.75, // Arrived at State/City
+            6: 0.90, // Out for Delivery
+            7: 1.00  // Delivered
+        };
+        return statusProgress[shipment.current_status_id] || 0.50;
+    }
+    
+    function interpolateRoute(start, end, progress) {
+        if (!start || !end || progress < 0 || progress > 1) return null;
+        return [
+            start[0] + (end[0] - start[0]) * progress,
+            start[1] + (end[1] - start[1]) * progress
+        ];
+    }
+    
+    // Create curved flight path (Great Circle Route)
+    function createCurvedFlightPath(start, end, numPoints = 50) {
+        if (!start || !end) return [start, end].filter(Boolean);
+        
+        const [lon1, lat1] = start;
+        const [lon2, lat2] = end;
+        
+        const path = [];
+        
+        // Simple curved path calculation
+        for (let i = 0; i <= numPoints; i++) {
+            const f = i / numPoints;
+            
+            // Linear interpolation
+            const lon = lon1 + (lon2 - lon1) * f;
+            const lat = lat1 + (lat2 - lat1) * f;
+            
+            // Add curvature (arc effect)
+            const curvature = Math.sin(f * Math.PI) * Math.abs(lon2 - lon1) * 0.15;
+            
+            path.push([lon, lat + curvature]);
+        }
+        
+        return path;
+    }
+    
+    // Calculate Great Circle Distance
+    function calculateGreatCircleDistance(start, end) {
+        if (!start || !end) return 0;
+        
+        const [lon1, lat1] = start;
+        const [lon2, lat2] = end;
+        
+        const R = 3959; // Earth's radius in miles
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        
+        return R * c;
+    }
+
+    // Calculate geodesic bearing from start to end (degrees)
+    function calculateBearing(start, end) {
+        if (!start || !end) return 0;
+        const lon1 = start[0] * Math.PI / 180;
+        const lat1 = start[1] * Math.PI / 180;
+        const lon2 = end[0] * Math.PI / 180;
+        const lat2 = end[1] * Math.PI / 180;
+        const dLon = lon2 - lon1;
+        const y = Math.sin(dLon) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+        let brng = Math.atan2(y, x) * 180 / Math.PI; // -180..+180
+        brng = (brng + 360) % 360; // 0..360
+        return brng;
+    }
+    
+    // Update route distance only (no flight time UI)
+    function updateFlightInfo(distance) {
+        const el = document.getElementById('flightDistance');
+        if (el) el.textContent = `${Math.round(distance)} miles`;
+    }
+    
+         // Add animated plane icon along flight path
+     function addAnimatedPlane(flightPath) {
+         if (!flightPath || flightPath.length < 2) return;
+         
+         // Create plane container (do not set transform; Mapbox uses transform for positioning)
+         const planeEl = document.createElement('div');
+         planeEl.style.display = 'flex';
+         planeEl.style.alignItems = 'center';
+         planeEl.style.justifyContent = 'center';
+         planeEl.style.width = '50px'; // reduced ~30%
+         planeEl.style.height = '50px'; // reduced ~30%
+         planeEl.style.zIndex = '1000';
+         planeEl.style.filter = 'drop-shadow(4px 4px 8px rgba(0,0,0,0.5))';
+         planeEl.style.background = 'radial-gradient(circle, rgba(0,123,255,0.25) 0%, transparent 70%)';
+         planeEl.style.borderRadius = '50%';
+         planeEl.style.boxShadow = '0 0 30px rgba(0, 123, 255, 0.6), 0 0 60px rgba(0, 123, 255, 0.3)';
+         planeEl.style.animation = 'plane-pulse 2s ease-in-out infinite';
+ 
+         // Inner rotating emoji element only
+         const iconEl = document.createElement('div');
+         iconEl.textContent = '✈️';
+         iconEl.style.fontSize = '34px'; // reduced ~30%
+         iconEl.style.transition = 'transform 120ms linear';
+         planeEl.appendChild(iconEl);
+ 
+         // Add plane marker with proper anchoring to center
+         const planeMarker = new mapboxgl.Marker({
+             element: planeEl,
+             anchor: 'center'  // This ensures the plane is centered on the coordinates
+         })
+             .setLngLat(flightPath[0])
+             .addTo(trackingMapInstance);
+         
+         // Animate plane along path from start to end, then restart (one-way looping)
+         let currentPoint = 0;
+        const EMOJI_BASE_HEADING = 45; // ✈️ baseline faces ~45° (NE)
+         const animatePlane = () => {
+             if (currentPoint >= flightPath.length) {
+                 currentPoint = 0; // restart from start
+             }
+             
+             const coords = flightPath[currentPoint];
+             if (coords) {
+                 planeMarker.setLngLat(coords);
+                 
+                 // Calculate rotation based on direction and rotate only the inner icon
+                 if (currentPoint < flightPath.length - 1) {
+                     const nextCoords = flightPath[currentPoint + 1];
+                     const bearing = calculateBearing(coords, nextCoords);
+                     iconEl.style.transform = `rotate(${bearing - EMOJI_BASE_HEADING}deg)`;
+                 }
+             }
+             
+             currentPoint++;
+             setTimeout(animatePlane, 150); // Move every 150ms
+         };
+         
+         // Start animation
+         setTimeout(animatePlane, 1000); // Start after 1 second
+     }
+
+    function isFiniteNum(v) {
+        return v !== null && v !== undefined && v !== '' && isFinite(Number(v));
+    }
+
+    function midpoint(a, b) {
+        if (!a || !b) return null;
+        return [ (a[0] + b[0]) / 2, (a[1] + b[1]) / 2 ];
+    }
+    
+    // Expose actions to global scope for inline onclick handlers
+    window.shareTracking = shareTracking;
+    window.showQRCode = showQRCode;
+    window.downloadPDF = downloadPDF;
+    window.enableNotifications = enableNotifications;
+    window.refreshTracking = refreshTracking;
+    window.centerMap = centerMap;
+});
+</script>

@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Track Shipment' %> | <%= companyName %></title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (match admin version) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Mapbox GL JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+    <script>
+        window.MAPBOX_TOKEN = "<%= (typeof appSettings !== 'undefined' && appSettings && appSettings.MAPBOX_TOKEN) ? appSettings.MAPBOX_TOKEN : 'pk.eyJ1IjoiYmFua2lzaCIsImEiOiJjbWVzZWgycGEwMjB3MmxyNGlrbWt2aTNjIn0.37ls066K6mb1uLO1_0vb9g' %>";
+    </script>
+    <!-- Modern Premium CSS -->
+    <link href="/css/modern-public.css" rel="stylesheet">
+    
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        /* Additional page-specific styles */
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f7f8fb;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .navbar-modern {
+            background: #ffffff;
+            border-bottom: 1px solid #eef0f4;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand-modern {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-weight: 800;
+            color: var(--primary-color) !important;
+            font-size: 1.25rem;
+            letter-spacing: .2px;
+        }
+        .navbar-brand-modern .brand-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #10b981);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(37,99,235, .25);
+        }
+
+        .main-content { padding: 2.5rem 0; }
+
+        .tracking-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .search-card {
+            background: #ffffff;
+            border: 1px solid #eef0f4;
+            border-radius: 16px;
+            box-shadow: 0 6px 30px rgba(2, 6, 23, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .search-card h1 {
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .search-card p {
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .search-btn {
+            border-radius: var(--border-radius);
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .results-card {
+            background: #ffffff;
+            border: 1px solid #eef0f4;
+            border-radius: 16px;
+            box-shadow: 0 6px 30px rgba(2, 6, 23, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            color: var(--secondary-color);
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Enhanced Tracking Progress Styles */
+        .progress-container {
+            padding: 2rem;
+        }
+
+        .progress-timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2.5rem;
+            position: relative;
+            opacity: 0.4;
+            transition: var(--transition);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .progress-step.completed {
+            opacity: 1;
+            background: rgba(25, 135, 84, 0.1);
+            border: 1px solid rgba(25, 135, 84, 0.2);
+        }
+
+        .progress-step.current {
+            opacity: 1;
+            transform: scale(1.02);
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+        }
+
+        .progress-step.upcoming {
+            opacity: 0.6;
+            background: rgba(108, 117, 125, 0.05);
+            border: 1px dashed rgba(108, 117, 125, 0.2);
+        }
+
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            left: 35px;
+            top: 80px;
+            width: 3px;
+            height: calc(100% + 1rem);
+            background: linear-gradient(to bottom, #e9ecef, transparent);
+            z-index: 1;
+            border-radius: 2px;
+        }
+
+        .progress-step:last-child::before {
+            display: none;
+        }
+
+        .progress-step.completed::before {
+            background: linear-gradient(to bottom, var(--success-color), rgba(25, 135, 84, 0.3));
+        }
+
+        .progress-step.current::before {
+            background: linear-gradient(to bottom, var(--primary-color), rgba(13, 110, 253, 0.3));
+            animation: flowDown 3s ease-in-out infinite;
+        }
+
+        @keyframes flowDown {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .step-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            position: relative;
+            z-index: 2;
+            transition: var(--transition);
+            border: 3px solid #e9ecef;
+            background: white;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-step.completed .step-icon {
+            background: linear-gradient(135deg, var(--success-color), #20c997);
+            border-color: var(--success-color);
+            color: white;
+            transform: rotate(360deg);
+        }
+
+        .progress-step.current .step-icon {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), #0d6efd);
+            color: white;
+            animation: currentPulse 2s infinite, rotate 4s linear infinite;
+        }
+
+        .progress-step.upcoming .step-icon {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: var(--secondary-color);
+        }
+
+        @keyframes currentPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(13, 110, 253, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+            }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .step-content {
+            flex: 1;
+            padding-top: 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .progress-step.current .step-title {
+            color: var(--primary-color);
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .step-time {
+            color: var(--secondary-color);
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-time i {
+            color: var(--primary-color);
+        }
+
+        /* Progress Stats */
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Enhanced Details */
+        .enhanced-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .detail-card {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .detail-card h6 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Interactive Elements */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark-color);
+            border: 1px solid #dee2e6;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Delivery Estimation */
+        .delivery-estimate {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .estimate-time {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .estimate-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Package Journey Map */
+        .journey-map {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+        }
+
+        .map-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            border: 2px dashed #dee2e6;
+        }
+
+        /* Interactive Map Styles */
+        #trackingMap {
+            height: 400px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* QR Code Modal */
+        .qr-modal {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .qr-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Weather Widget */
+        .weather-widget {
+            background: linear-gradient(135deg, #87CEEB, #4682B4);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+        }
+
+        .weather-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Package Photos Gallery */
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        /* Delivery Preferences */
+        .preferences-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .preference-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: var(--border-radius);
+            border: 1px solid #dee2e6;
+            transition: var(--transition);
+        }
+
+        .preference-option:hover {
+            background: rgba(13, 110, 253, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        /* Real-time Updates */
+        .live-updates {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: var(--transition);
+        }
+
+        .live-updates.show {
+            transform: translateX(0);
+        }
+
+        /* Progress Analytics */
+        .analytics-chart {
+            height: 200px;
+            margin: 1rem 0;
+        }
+
+        /* Enhanced Tooltips */
+        .tooltip-custom {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tooltip-custom.show {
+            opacity: 1;
+        }
+
+        /* Floating Action Menu */
+        .floating-menu {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .fab-main {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 20px rgba(13, 110, 253, 0.4);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .fab-main:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(13, 110, 253, 0.6);
+        }
+
+        .fab-options {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transform: scale(0);
+            transition: var(--transition);
+        }
+
+        .fab-options.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .fab-option {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .fab-option:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Shipment Details */
+        .shipment-header {
+            background: var(--light-color);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tracking-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .shipment-route {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .route-arrow {
+            color: var(--primary-color);
+        }
+
+        .shipment-details {
+            padding: 2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem 0;
+            }
+
+            .search-card,
+            .progress-container,
+            .shipment-details {
+                padding: 1.5rem;
+            }
+
+            .progress-step {
+                margin-bottom: 1.5rem;
+            }
+
+            .step-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .tracking-number {
+                font-size: 1.25rem;
+            }
+
+            .shipment-route {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Premium Navigation -->
+    <nav style="position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-bottom: 1px solid #e2e8f0; z-index: 1000; transition: all 0.3s; width: 100%;" id="navbar">
+        <div style="width: 100%; padding: 0 1rem;">
+            <div style="max-width: 1280px; margin: 0 auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; height: 70px;">
+                    <!-- Logo -->
+                    <a href="/" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <span style="font-size: clamp(1.2rem, 3vw, 1.5rem); font-weight: 800; color: #0f172a;"><%= companyName %></span>
+                    </a>
+                
+                <!-- Desktop Menu -->
+                <div style="display: flex; align-items: center; gap: 2rem;" id="desktopMenu">
+                    <a href="/" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; transition: color 0.3s; position: relative; padding: 0.5rem 0;">Home</a>
+                    <a href="/services" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; transition: color 0.3s; position: relative; padding: 0.5rem 0;">Services</a>
+                    <a href="/track" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; transition: color 0.3s; position: relative; padding: 0.5rem 0;">Track</a>
+                    <a href="/about" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; transition: color 0.3s; position: relative; padding: 0.5rem 0;">About</a>
+                    <a href="/testimonials" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; transition: color 0.3s; position: relative; padding: 0.5rem 0;">Testimonials</a>
+                    <a href="/contact" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; transition: color 0.3s; position: relative; padding: 0.5rem 0;">Contact</a>
+                    
+                </div>
+                
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" style="display: none; background: none; border: none; font-size: 1.5rem; color: #0f172a; cursor: pointer;" id="mobileMenuBtn">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); padding: 1rem 2rem 2rem;">
+            <a href="/" style="display: block; padding: 0.75rem 0; color: #475569; text-decoration: none; font-weight: 500; border-bottom: 1px solid #e2e8f0;">Home</a>
+            <a href="/services" style="display: block; padding: 0.75rem 0; color: #475569; text-decoration: none; font-weight: 500; border-bottom: 1px solid #e2e8f0;">Services</a>
+            <a href="/track" style="display: block; padding: 0.75rem 0; color: #475569; text-decoration: none; font-weight: 500; border-bottom: 1px solid #e2e8f0;">Track</a>
+            <a href="/about" style="display: block; padding: 0.75rem 0; color: #475569; text-decoration: none; font-weight: 500; border-bottom: 1px solid #e2e8f0;">About</a>
+            <a href="/testimonials" style="display: block; padding: 0.75rem 0; color: #475569; text-decoration: none; font-weight: 500; border-bottom: 1px solid #e2e8f0;">Testimonials</a>
+            <a href="/contact" style="display: block; padding: 0.75rem 0; color: #475569; text-decoration: none; font-weight: 500; border-bottom: 1px solid #e2e8f0;">Contact</a>
+            
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="padding-top: 70px; min-height: calc(100vh - 70px); width: 100%;">
+        <%- body %>
+    </main>
+
+    <!-- Premium Footer -->
+    <footer style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; padding: 3rem 1rem 2rem; margin-top: 0; width: 100%;">
+        <div style="max-width: 1280px; margin: 0 auto; padding: 0 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+                <!-- Company Info -->
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <span style="font-size: 1.5rem; font-weight: 800;"><%= companyName %></span>
+                    </div>
+                    <p style="color: #94a3b8; line-height: 1.7; margin-bottom: 1.5rem;">
+                        Your trusted partner for global shipping and logistics solutions. 
+                        We deliver excellence across air, sea, and land with cutting-edge tracking technology.
+                    </p>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.background='#3b82f6'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.background='#1DA1F2'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.background='#0077B5'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.background='linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h6 style="font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; color: white;">Quick Links</h6>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.75rem;"><a href="/track" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Track Package</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/services" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Our Services</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/about" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">About Us</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/contact" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Contact</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/testimonials" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Testimonials</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Services -->
+                <div>
+                    <h6 style="font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; color: white;">Services</h6>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.75rem;"><a href="/services#air" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Air Freight</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/services#sea" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Sea Freight</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/services#land" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Land Freight</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/services#live" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Live Animals</a></li>
+                        <li style="margin-bottom: 0.75rem;"><a href="/services#specialized" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">Specialized Cargo</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact -->
+                <div>
+                    <h6 style="font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; color: white;">Get in Touch</h6>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #94a3b8;">
+                            <i class="bi bi-envelope" style="color: #60a5fa;"></i> info@emilash.com
+                        </li>
+                        <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #94a3b8;">
+                            <i class="bi bi-phone" style="color: #60a5fa;"></i> +1 (555) 123-4567
+                        </li>
+                        <li style="margin-bottom: 0.75rem; color: #94a3b8;">
+                            <div style="display: flex; align-items: start; gap: 0.5rem;">
+                                <i class="bi bi-geo-alt" style="color: #60a5fa;"></i>
+                                <div>
+                                    123 Logistics Ave<br>
+                                    New York, NY 10001
+                                </div>
+                            </div>
+                        </li>
+                        <li style="margin-top: 1rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px; text-align: center; color: #60a5fa; font-weight: 600;">
+                            24/7 Support Available
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Footer Bottom -->
+            <div style="padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <p style="color: #64748b; margin: 0;">&copy; 2024 <%= companyName %>. All rights reserved.</p>
+                <div style="display: flex; gap: 2rem;">
+                    <a href="#" style="color: #64748b; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#64748b'">Privacy Policy</a>
+                    <a href="#" style="color: #64748b; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#64748b'">Terms of Service</a>
+                    <a href="#" style="color: #64748b; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#64748b'">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS for Maps (already included CSS on top) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Premium Navigation + Map Script (Mapbox) -->
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            
+            if (mobileMenu.style.display === 'none' || !mobileMenu.style.display) {
+                mobileMenu.style.display = 'block';
+                mobileBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+            } else {
+                mobileMenu.style.display = 'none';
+                mobileBtn.innerHTML = '<i class="bi bi-list"></i>';
+            }
+        }
+
+        // Active link highlighting
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.style.color = '#1e3a8a';
+                link.style.fontWeight = '600';
+                
+                // Add underline effect
+                const underline = document.createElement('div');
+                underline.style.position = 'absolute';
+                underline.style.bottom = '0';
+                underline.style.left = '0';
+                underline.style.width = '100%';
+                underline.style.height = '2px';
+                underline.style.background = 'linear-gradient(90deg, #1e3a8a, #3b82f6)';
+                link.style.position = 'relative';
+                link.appendChild(underline);
+            }
+            
+            // Hover effects
+            link.addEventListener('mouseenter', function() {
+                if (this.getAttribute('href') !== currentPath) {
+                    this.style.color = '#1e3a8a';
+                }
+            });
+            
+            link.addEventListener('mouseleave', function() {
+                if (this.getAttribute('href') !== currentPath) {
+                    this.style.color = '#475569';
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                navbar.style.background = 'rgba(255, 255, 255, 1)';
+            } else {
+                navbar.style.boxShadow = 'none';
+                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+            }
+        });
+
+        // Responsive menu
+        function checkScreenSize() {
+            const desktopMenu = document.getElementById('desktopMenu');
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            
+            if (window.innerWidth <= 768) {
+                desktopMenu.style.display = 'none';
+                mobileBtn.style.display = 'block';
+            } else {
+                desktopMenu.style.display = 'flex';
+                mobileBtn.style.display = 'none';
+                document.getElementById('mobileMenu').style.display = 'none';
+            }
+        }
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+
+        // Add padding to main content for fixed navbar (safe)
+        try {
+            const mainEl = document.querySelector('.main-content');
+            if (mainEl) {
+                mainEl.style.paddingTop = '80px';
+            } else {
+                // fallback so content isn't hidden under navbar
+                document.body.style.paddingTop = '70px';
+            }
+        } catch (_) {}
+
+        // Initialize Mapbox map if placeholder exists
+        try {
+            const mapContainer = document.getElementById('coverageMap');
+            if (mapContainer && window.mapboxgl) {
+                const token = window.MAPBOX_TOKEN || "<%= (typeof appSettings !== 'undefined' && appSettings && appSettings.MAPBOX_TOKEN) ? appSettings.MAPBOX_TOKEN : '' %>";
+                if (!token) {
+                    console.warn('Mapbox token missing. Set MAPBOX_TOKEN in settings.');
+                } else {
+                    mapboxgl.accessToken = token;
+                    const map = new mapboxgl.Map({
+                        container: 'coverageMap',
+                        style: 'mapbox://styles/mapbox/light-v11',
+                        center: [0, 20],
+                        zoom: 1.5,
+                        attributionControl: false
+                    });
+
+                    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
+
+                    const hubs = [
+                        // Americas
+                        { name: 'New York Hub', lnglat: [-74.0060, 40.7128] },
+                        { name: 'Los Angeles', lnglat: [-118.2437, 34.0522] },
+                        { name: 'Miami', lnglat: [-80.1918, 25.7617] },
+                        { name: 'Mexico City', lnglat: [-99.1332, 19.4326] },
+                        { name: 'São Paulo', lnglat: [-46.6333, -23.5505] },
+                        { name: 'Buenos Aires', lnglat: [-58.3816, -34.6037] },
+                        { name: 'Panama City', lnglat: [-79.5197, 8.9824] },
+
+                        // Europe
+                        { name: 'London Hub', lnglat: [-0.1278, 51.5074] },
+                        { name: 'Paris', lnglat: [2.3522, 48.8566] },
+                        { name: 'Amsterdam', lnglat: [4.9041, 52.3676] },
+                        { name: 'Frankfurt', lnglat: [8.6821, 50.1109] },
+                        { name: 'Madrid', lnglat: [-3.7038, 40.4168] },
+                        { name: 'Istanbul', lnglat: [28.9784, 41.0082] },
+
+                        // Middle East & Africa
+                        { name: 'Dubai Hub', lnglat: [55.2708, 25.2048] },
+                        { name: 'Doha', lnglat: [51.5310, 25.2854] },
+                        { name: 'Riyadh', lnglat: [46.6753, 24.7136] },
+                        { name: 'Lagos Hub', lnglat: [3.3792, 6.5244] },
+                        { name: 'Nairobi', lnglat: [36.8219, -1.2921] },
+                        { name: 'Johannesburg', lnglat: [28.0473, -26.2041] },
+
+                        // Asia
+                        { name: 'Singapore Hub', lnglat: [103.8198, 1.3521] },
+                        { name: 'Hong Kong', lnglat: [114.1694, 22.3193] },
+                        { name: 'Shanghai', lnglat: [121.4737, 31.2304] },
+                        { name: 'Tokyo', lnglat: [139.6917, 35.6895] },
+                        { name: 'Mumbai', lnglat: [72.8777, 19.0760] },
+                        { name: 'Bangkok', lnglat: [100.5018, 13.7563] },
+
+                        // Oceania
+                        { name: 'Sydney', lnglat: [151.2093, -33.8688] },
+                        { name: 'Auckland', lnglat: [174.7633, -36.8485] }
+                    ];
+
+                    hubs.forEach(h => {
+                        const el = document.createElement('div');
+                        el.style.width = '12px';
+                        el.style.height = '12px';
+                        el.style.borderRadius = '50%';
+                        el.style.background = '#2563eb';
+                        el.style.border = '2px solid #1e40af';
+                        el.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.15)';
+                        new mapboxgl.Marker(el).setLngLat(h.lnglat).setPopup(new mapboxgl.Popup({ offset: 12 }).setHTML(`<strong>${h.name}</strong>`)).addTo(map);
+                    });
+
+                    // Build hub lookup by name
+                    const hubByName = hubs.reduce((acc, h) => { acc[h.name] = h.lnglat; return acc; }, {});
+
+                    // Network pairs to visualize routes between hubs
+                    const routePairs = [
+                        // Transatlantic & core
+                        ['New York Hub', 'London Hub'],
+                        ['London Hub', 'Paris'],
+                        ['Paris', 'Frankfurt'],
+                        ['Frankfurt', 'Amsterdam'],
+                        ['London Hub', 'Madrid'],
+
+                        // Europe → Middle East / Africa
+                        ['London Hub', 'Dubai Hub'],
+                        ['Dubai Hub', 'Doha'],
+                        ['Doha', 'Riyadh'],
+                        ['London Hub', 'Lagos Hub'],
+                        ['Lagos Hub', 'Nairobi'],
+                        ['Nairobi', 'Johannesburg'],
+
+                        // Middle East → Asia
+                        ['Dubai Hub', 'Singapore Hub'],
+                        ['Singapore Hub', 'Hong Kong'],
+                        ['Hong Kong', 'Shanghai'],
+                        ['Shanghai', 'Tokyo'],
+                        ['Dubai Hub', 'Mumbai'],
+                        ['Mumbai', 'Bangkok'],
+
+                        // Transpacific & Americas
+                        ['Tokyo', 'Los Angeles'],
+                        ['Los Angeles', 'Miami'],
+                        ['Miami', 'Mexico City'],
+                        ['Miami', 'Panama City'],
+                        ['Panama City', 'São Paulo'],
+                        ['São Paulo', 'Buenos Aires'],
+
+                        // Asia / Oceania
+                        ['Singapore Hub', 'Sydney'],
+                        ['Sydney', 'Auckland'],
+                        ['Auckland', 'Singapore Hub']
+                    ];
+
+                    const palette = ['#22c55e', '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4'];
+                    const routeFeatures = routePairs
+                        .filter(([a,b]) => hubByName[a] && hubByName[b])
+                        .map((pair, i) => ({
+                            type: 'Feature',
+                            properties: { id: 'route-' + i, color: palette[i % palette.length] },
+                            geometry: { type: 'LineString', coordinates: [ hubByName[pair[0]], hubByName[pair[1]] ] }
+                        }));
+
+                    map.on('load', () => {
+                        map.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: routeFeatures } });
+                        // Solid underlay (for strong color)
+                        map.addLayer({
+                            id: 'routes-solid',
+                            type: 'line',
+                            source: 'routes',
+                            layout: {
+                                'line-join': 'round',
+                                'line-cap': 'round'
+                            },
+                            paint: {
+                                'line-color': ['get', 'color'],
+                                'line-width': 3,
+                                'line-opacity': 0.9
+                            }
+                        });
+
+                        // Dashed overlay (visible dashes)
+                        map.addLayer({
+                            id: 'routes-dashed',
+                            type: 'line',
+                            source: 'routes',
+                            layout: {
+                                'line-join': 'round',
+                                'line-cap': 'round'
+                            },
+                            paint: {
+                                'line-color': ['get', 'color'],
+                                'line-width': 2,
+                                'line-opacity': 1,
+                                'line-dasharray': [2, 2]
+                            }
+                        });
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn('Mapbox init skipped:', e);
+        }
+    </script>
+</body>
+</html>

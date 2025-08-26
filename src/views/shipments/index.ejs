@@ -1,0 +1,171 @@
+<% layout('layouts/admin') %>
+
+<div class="row mb-4">
+	<div class="col-md-8">
+		<h1 class="h3 mb-0">📦 Shipments Management</h1>
+		<p class="text-muted">Manage and track all shipments</p>
+	</div>
+	<div class="col-md-4 text-end">
+		<a href="/admin/shipments/new" class="btn btn-primary">
+			➕ New Shipment
+		</a>
+	</div>
+</div>
+
+<!-- Search and Filters -->
+<div class="search-box mb-4">
+	<form method="get" action="/admin/shipments" class="row g-3 align-items-end">
+		<div class="col-md-4">
+			<label class="form-label">🔍 Search</label>
+			<input type="text" name="search" class="form-control" placeholder="Tracking number, sender, receiver..." value="<%= search || '' %>">
+		</div>
+		<div class="col-md-2">
+			<label class="form-label">🏷️ Status</label>
+			<select name="status" class="form-select">
+				<option value="">All Statuses</option>
+				<% if (statuses) { statuses.forEach(st => { %>
+					<option value="<%= st.id %>" <%= (status && Number(status) === st.id) ? 'selected' : '' %>><%= st.name %></option>
+				<% }) } %>
+			</select>
+		</div>
+		<div class="col-md-2">
+			<label class="form-label">⚡ Priority</label>
+			<select name="priority" class="form-select">
+				<option value="">All Priorities</option>
+				<option value="low" <%= (priority === 'low') ? 'selected' : '' %>>Low</option>
+				<option value="normal" <%= (priority === 'normal') ? 'selected' : '' %>>Normal</option>
+				<option value="high" <%= (priority === 'high') ? 'selected' : '' %>>High</option>
+				<option value="urgent" <%= (priority === 'urgent') ? 'selected' : '' %>>Urgent</option>
+			</select>
+		</div>
+		<div class="col-md-2">
+			<label class="form-label">🚚 Service</label>
+			<select name="service" class="form-select">
+				<option value="">All Services</option>
+				<option value="standard" <%= (service === 'standard') ? 'selected' : '' %>>Standard</option>
+				<option value="express" <%= (service === 'express') ? 'selected' : '' %>>Express</option>
+				<option value="overnight" <%= (service === 'overnight') ? 'selected' : '' %>>Overnight</option>
+				<option value="freight" <%= (service === 'freight') ? 'selected' : '' %>>Freight</option>
+			</select>
+		</div>
+		<div class="col-md-2">
+			<button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+		</div>
+	</form>
+</div>
+
+<!-- Results Summary -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<div>
+		<small class="text-muted">
+			Showing <%= shipments.length %> shipment<%= shipments.length !== 1 ? 's' : '' %>
+			<% if (search || status || priority || service) { %>
+				(filtered)
+			<% } %>
+		</small>
+	</div>
+	<div>
+		<% if (search || status || priority || service) { %>
+			<a href="/admin/shipments" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+		<% } %>
+	</div>
+</div>
+
+<!-- Shipments Table -->
+<div class="card">
+	<div class="table-responsive">
+		<table class="table table-hover align-middle mb-0">
+			<thead>
+				<tr>
+					<th>📋 Tracking</th>
+					<th>📤 Sender</th>
+					<th>📥 Receiver</th>
+					<th>🏷️ Status</th>
+					<th>⚡ Priority</th>
+					<th>🚚 Service</th>
+					<th>🕒 ETA</th>
+					<th>💰 Value</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% if (shipments && shipments.length) { %>
+					<% shipments.forEach(s => { %>
+						<tr>
+							<td>
+								<a href="/admin/shipments/<%= s.id %>" class="fw-bold text-decoration-none">
+									<%= s.tracking_number %>
+								</a>
+								<br>
+								<small class="text-muted">#<%= s.id %></small>
+							</td>
+							<td>
+								<div><%= s.sender_name %></div>
+								<small class="text-muted"><%= s.origin || 'N/A' %></small>
+							</td>
+							<td>
+								<div><%= s.receiver_name %></div>
+								<small class="text-muted"><%= s.destination || 'N/A' %></small>
+							</td>
+							<td>
+								<span class="badge" style="background:<%= s.status_color || '#6c757d' %>">
+									<%= s.status_name || 'N/A' %>
+								</span>
+							</td>
+							<td>
+								<span class="priority-<%= s.priority || 'normal' %>">
+									<%= (s.priority || 'normal').toUpperCase() %>
+								</span>
+							</td>
+							<td>
+								<span class="badge service-<%= s.service_type || 'standard' %>">
+									<%= (s.service_type || 'standard').toUpperCase() %>
+								</span>
+							</td>
+							<td>
+								<% if (s.eta) { %>
+									<%= new Date(s.eta).toLocaleDateString() %>
+									<br>
+									<small class="text-muted"><%= new Date(s.eta).toLocaleTimeString() %></small>
+								<% } else { %>
+									<span class="text-muted">-</span>
+								<% } %>
+							</td>
+							<td>
+								<% if (s.package_value) { %>
+									$<%= Number(s.package_value).toFixed(2) %>
+								<% } else { %>
+									<span class="text-muted">-</span>
+								<% } %>
+							</td>
+							<td>
+								<div class="btn-group btn-group-sm">
+									<a class="btn btn-outline-info" href="/admin/shipments/<%= s.id %>" title="View">👁️</a>
+									<a class="btn btn-outline-secondary" href="/admin/shipments/<%= s.id %>/edit" title="Edit">✏️</a>
+									<form method="post" action="/admin/shipments/<%= s.id %>?_method=DELETE" class="d-inline" onsubmit="return confirm('Delete this shipment?')">
+										<button class="btn btn-outline-danger btn-sm" title="Delete">🗑️</button>
+									</form>
+								</div>
+							</td>
+						</tr>
+					<% }) %>
+				<% } else { %>
+					<tr>
+						<td colspan="9" class="text-center py-5">
+							<div class="text-muted">
+								<h5>📦 No shipments found</h5>
+								<p>
+									<% if (search || status || priority || service) { %>
+										Try adjusting your filters or <a href="/admin/shipments">view all shipments</a>
+									<% } else { %>
+										<a href="/admin/shipments/new">Create your first shipment</a>
+									<% } %>
+								</p>
+							</div>
+						</td>
+					</tr>
+				<% } %>
+			</tbody>
+		</table>
+	</div>
+</div>

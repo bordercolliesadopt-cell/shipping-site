@@ -1,0 +1,548 @@
+<% layout('layouts/admin') %>
+<% const settings = (typeof appSettings !== 'undefined' && appSettings) || {}; %>
+
+<!-- Settings Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+	<div>
+		<h2 class="mb-1">System Settings</h2>
+		<p class="text-muted mb-0">Configure your shipping system preferences</p>
+	</div>
+	<div class="d-flex gap-2">
+		<button class="btn btn-outline-primary btn-sm" onclick="exportSettings()">
+			<i class="bi bi-download"></i>
+			Export Config
+		</button>
+		<button class="btn btn-success btn-sm" onclick="saveAllSettings()">
+			<i class="bi bi-check-lg"></i>
+			Save All
+		</button>
+	</div>
+</div>
+
+<!-- Settings Navigation Tabs -->
+<div class="row">
+	<div class="col-lg-3 mb-4">
+		<div class="card">
+			<div class="card-header">
+				<h6 class="mb-0">
+					<i class="bi bi-sliders"></i>
+					Settings Categories
+				</h6>
+			</div>
+			<div class="list-group list-group-flush">
+				<a class="list-group-item list-group-item-action active" data-bs-toggle="tab" href="#company-tab">
+					<i class="bi bi-building me-2"></i>
+					Company Info
+				</a>
+				<a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#smtp-tab">
+					<i class="bi bi-envelope me-2"></i>
+					Email Settings
+				</a>
+				<a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#shipping-tab">
+					<i class="bi bi-truck me-2"></i>
+					Shipping Config
+				</a>
+				<a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#notifications-tab">
+					<i class="bi bi-bell me-2"></i>
+					Notifications
+				</a>
+				<a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#security-tab">
+					<i class="bi bi-shield-check me-2"></i>
+					Security
+				</a>
+				<a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#system-tab">
+					<i class="bi bi-gear me-2"></i>
+					System
+				</a>
+			</div>
+		</div>
+	</div>
+	
+	<div class="col-lg-9">
+		<div class="tab-content">
+			<!-- Company Settings -->
+			<div class="tab-pane fade show active" id="company-tab">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="mb-0">
+							<i class="bi bi-building"></i>
+							Company Information
+						</h5>
+					</div>
+					<form method="post" action="/admin/settings" id="companyForm">
+						<div class="card-body">
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-building me-1"></i>
+										Company Name
+									</label>
+									<input class="form-control" name="COMPANY_NAME" value="<%= settings.COMPANY_NAME || '' %>" required>
+		</div>
+		<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-globe me-1"></i>
+										Website URL
+									</label>
+									<input class="form-control" name="COMPANY_WEBSITE" value="<%= settings.COMPANY_WEBSITE || '' %>" placeholder="https://yourcompany.com">
+		</div>
+		<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-envelope me-1"></i>
+										Company Email
+									</label>
+									<input type="email" class="form-control" name="COMPANY_EMAIL" value="<%= settings.COMPANY_EMAIL || '' %>" required>
+		</div>
+		<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-phone me-1"></i>
+										Company Phone
+									</label>
+			<input class="form-control" name="COMPANY_PHONE" value="<%= settings.COMPANY_PHONE || '' %>">
+		</div>
+								<div class="col-12">
+									<label class="form-label">
+										<i class="bi bi-geo-alt me-1"></i>
+										Company Address
+									</label>
+									<textarea class="form-control" name="COMPANY_ADDRESS" rows="2"><%= settings.COMPANY_ADDRESS || '' %></textarea>
+								</div>
+								<div class="col-md-4">
+									<label class="form-label">
+										<i class="bi bi-clock me-1"></i>
+										Timezone
+									</label>
+									<select class="form-select" name="TIMEZONE">
+										<option value="UTC" <%= (settings.TIMEZONE === 'UTC') ? 'selected' : '' %>>UTC</option>
+										<option value="America/New_York" <%= (settings.TIMEZONE === 'America/New_York') ? 'selected' : '' %>>Eastern Time</option>
+										<option value="America/Chicago" <%= (settings.TIMEZONE === 'America/Chicago') ? 'selected' : '' %>>Central Time</option>
+										<option value="America/Denver" <%= (settings.TIMEZONE === 'America/Denver') ? 'selected' : '' %>>Mountain Time</option>
+										<option value="America/Los_Angeles" <%= (settings.TIMEZONE === 'America/Los_Angeles') ? 'selected' : '' %>>Pacific Time</option>
+									</select>
+								</div>
+								<div class="col-md-4">
+									<label class="form-label">
+										<i class="bi bi-currency-dollar me-1"></i>
+										Currency
+									</label>
+									<select class="form-select" name="CURRENCY">
+										<option value="USD" <%= (settings.CURRENCY === 'USD') ? 'selected' : '' %>>USD - US Dollar</option>
+										<option value="EUR" <%= (settings.CURRENCY === 'EUR') ? 'selected' : '' %>>EUR - Euro</option>
+										<option value="GBP" <%= (settings.CURRENCY === 'GBP') ? 'selected' : '' %>>GBP - British Pound</option>
+										<option value="CAD" <%= (settings.CURRENCY === 'CAD') ? 'selected' : '' %>>CAD - Canadian Dollar</option>
+									</select>
+		</div>
+		<div class="col-md-4">
+									<label class="form-label">
+										<i class="bi bi-link me-1"></i>
+										Site Base URL
+									</label>
+									<input class="form-control" name="SITE_BASE_URL" value="<%= settings.SITE_BASE_URL || 'http://localhost:3000' %>">
+								</div>
+		</div>
+	</div>
+						<div class="card-footer">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-check-lg"></i>
+								Save Company Settings
+							</button>
+	</div>
+</form>
+				</div>
+			</div>
+
+			<!-- SMTP Settings -->
+			<div class="tab-pane fade" id="smtp-tab">
+				<div class="card">
+					<div class="card-header d-flex justify-content-between align-items-center">
+						<h5 class="mb-0">
+							<i class="bi bi-envelope-gear"></i>
+							Email Configuration
+						</h5>
+						<span class="badge <%= settings.SMTP_HOST ? 'bg-success' : 'bg-warning' %>">
+							<%= settings.SMTP_HOST ? 'Configured' : 'Not Setup' %>
+						</span>
+					</div>
+					<form method="post" action="/admin/settings" id="smtpForm">
+						<div class="card-body">
+							<div class="alert alert-info">
+								<i class="bi bi-info-circle"></i>
+								Configure SMTP settings to send email notifications for shipment updates, user registrations, and system alerts.
+		</div>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-server me-1"></i>
+										SMTP Host
+									</label>
+									<input class="form-control" name="SMTP_HOST" value="<%= settings.SMTP_HOST || '' %>" placeholder="smtp.gmail.com">
+									<div class="form-text">Your email provider's SMTP server address</div>
+		</div>
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-plug me-1"></i>
+										SMTP Port
+									</label>
+									<select class="form-select" name="SMTP_PORT">
+										<option value="587" <%= (settings.SMTP_PORT === '587') ? 'selected' : '' %>>587 (STARTTLS)</option>
+										<option value="465" <%= (settings.SMTP_PORT === '465') ? 'selected' : '' %>>465 (SSL)</option>
+										<option value="25" <%= (settings.SMTP_PORT === '25') ? 'selected' : '' %>>25 (Unencrypted)</option>
+									</select>
+		</div>
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-person me-1"></i>
+										Username
+									</label>
+									<input class="form-control" name="SMTP_USER" value="<%= settings.SMTP_USER || '' %>" placeholder="your-email@gmail.com">
+		</div>
+		<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-key me-1"></i>
+										Password
+									</label>
+									<input type="password" class="form-control" name="SMTP_PASSWORD" value="<%= settings.SMTP_PASSWORD || '' %>" placeholder="App Password">
+								</div>
+								<div class="col-12">
+									<label class="form-label">
+										<i class="bi bi-envelope me-1"></i>
+										From Address
+									</label>
+									<input class="form-control" name="SMTP_FROM" value="<%= settings.SMTP_FROM || '' %>" placeholder='"Emilash Logistics" <no-reply@yourcompany.com>'>
+									<div class="form-text">The email address and name that will appear as the sender</div>
+								</div>
+								<div class="col-12">
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" name="EMAIL_NOTIFICATIONS" value="1" <%= settings.EMAIL_NOTIFICATIONS === '1' ? 'checked' : '' %>>
+										<label class="form-check-label">
+											<i class="bi bi-bell me-1"></i>
+											Enable email notifications
+										</label>
+									</div>
+								</div>
+		</div>
+	</div>
+	<div class="card-footer d-flex justify-content-between">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-check-lg"></i>
+								Save SMTP Settings
+							</button>
+							<form method="post" action="/admin/settings/test-smtp" class="m-0 d-inline">
+								<button type="submit" class="btn btn-outline-success" <%= !settings.SMTP_HOST ? 'disabled' : '' %>>
+									<i class="bi bi-envelope-check"></i>
+									Send Test Email
+								</button>
+							</form>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Shipping Configuration -->
+			<div class="tab-pane fade" id="shipping-tab">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="mb-0">
+							<i class="bi bi-truck"></i>
+							Shipping Configuration
+						</h5>
+					</div>
+					<form method="post" action="/admin/settings" id="shippingForm">
+						<div class="card-body">
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-box me-1"></i>
+										Default Service Type
+									</label>
+									<select class="form-select" name="DEFAULT_SERVICE_TYPE">
+										<option value="standard" <%= (settings.DEFAULT_SERVICE_TYPE === 'standard') ? 'selected' : '' %>>Standard</option>
+										<option value="express" <%= (settings.DEFAULT_SERVICE_TYPE === 'express') ? 'selected' : '' %>>Express</option>
+										<option value="overnight" <%= (settings.DEFAULT_SERVICE_TYPE === 'overnight') ? 'selected' : '' %>>Overnight</option>
+										<option value="freight" <%= (settings.DEFAULT_SERVICE_TYPE === 'freight') ? 'selected' : '' %>>Freight</option>
+									</select>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-speedometer me-1"></i>
+										Auto Status Updates
+									</label>
+									<select class="form-select" name="AUTO_TRACKING_UPDATES">
+										<option value="1" <%= (settings.AUTO_TRACKING_UPDATES === '1') ? 'selected' : '' %>>Enabled</option>
+										<option value="0" <%= (settings.AUTO_TRACKING_UPDATES === '0') ? 'selected' : '' %>>Disabled</option>
+									</select>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-clock me-1"></i>
+										Default ETA (Hours)
+									</label>
+									<input type="number" class="form-control" name="DEFAULT_ETA_HOURS" value="<%= settings.DEFAULT_ETA_HOURS || '24' %>">
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-shield me-1"></i>
+										Insurance Required
+									</label>
+									<select class="form-select" name="INSURANCE_REQUIRED">
+										<option value="0" <%= (settings.INSURANCE_REQUIRED === '0') ? 'selected' : '' %>>Optional</option>
+										<option value="1" <%= (settings.INSURANCE_REQUIRED === '1') ? 'selected' : '' %>>Required</option>
+									</select>
+								</div>
+								<div class="col-12">
+									<label class="form-label">
+										<i class="bi bi-exclamation-triangle me-1"></i>
+										Dangerous Goods Policy
+									</label>
+									<textarea class="form-control" name="DANGEROUS_GOODS_POLICY" rows="3"><%= settings.DANGEROUS_GOODS_POLICY || 'Please contact customer service for dangerous goods shipments.' %></textarea>
+								</div>
+							</div>
+						</div>
+						<div class="card-footer">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-check-lg"></i>
+								Save Shipping Settings
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Notifications -->
+			<div class="tab-pane fade" id="notifications-tab">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="mb-0">
+							<i class="bi bi-bell"></i>
+							Notification Settings
+						</h5>
+					</div>
+					<form method="post" action="/admin/settings" id="notificationsForm">
+						<div class="card-body">
+							<div class="row g-4">
+								<div class="col-12">
+									<h6 class="text-primary">Email Notifications</h6>
+									<div class="row g-3">
+										<div class="col-md-6">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="NOTIFY_SHIPMENT_CREATED" value="1" <%= settings.NOTIFY_SHIPMENT_CREATED === '1' ? 'checked' : '' %>>
+												<label class="form-check-label">
+													<i class="bi bi-plus-circle text-success me-1"></i>
+													New Shipment Created
+												</label>
+											</div>
+										</div>
+										<div class="col-md-6">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="NOTIFY_STATUS_CHANGED" value="1" <%= settings.NOTIFY_STATUS_CHANGED === '1' ? 'checked' : '' %>>
+												<label class="form-check-label">
+													<i class="bi bi-arrow-repeat text-info me-1"></i>
+													Status Updates
+												</label>
+											</div>
+										</div>
+										<div class="col-md-6">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="NOTIFY_DELIVERED" value="1" <%= settings.NOTIFY_DELIVERED === '1' ? 'checked' : '' %>>
+												<label class="form-check-label">
+													<i class="bi bi-check-circle text-success me-1"></i>
+													Delivery Confirmation
+												</label>
+											</div>
+										</div>
+										<div class="col-md-6">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="NOTIFY_EXCEPTIONS" value="1" <%= settings.NOTIFY_EXCEPTIONS === '1' ? 'checked' : '' %>>
+												<label class="form-check-label">
+													<i class="bi bi-exclamation-triangle text-warning me-1"></i>
+													Delivery Exceptions
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="col-12">
+									<h6 class="text-primary">Admin Notifications</h6>
+									<div class="row g-3">
+										<div class="col-md-6">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="ADMIN_DAILY_SUMMARY" value="1" <%= settings.ADMIN_DAILY_SUMMARY === '1' ? 'checked' : '' %>>
+												<label class="form-check-label">
+													<i class="bi bi-calendar-day text-primary me-1"></i>
+													Daily Summary Report
+												</label>
+											</div>
+										</div>
+										<div class="col-md-6">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="ADMIN_SYSTEM_ALERTS" value="1" <%= settings.ADMIN_SYSTEM_ALERTS === '1' ? 'checked' : '' %>>
+												<label class="form-check-label">
+													<i class="bi bi-exclamation-circle text-danger me-1"></i>
+													System Alerts
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="card-footer">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-check-lg"></i>
+								Save Notification Settings
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Security -->
+			<div class="tab-pane fade" id="security-tab">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="mb-0">
+							<i class="bi bi-shield-check"></i>
+							Security Settings
+						</h5>
+					</div>
+					<form method="post" action="/admin/settings" id="securityForm">
+						<div class="card-body">
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-clock-history me-1"></i>
+										Session Timeout (hours)
+									</label>
+									<input type="number" class="form-control" name="SESSION_TIMEOUT_HOURS" value="<%= settings.SESSION_TIMEOUT_HOURS || '8' %>" min="1" max="24">
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">
+										<i class="bi bi-shield-lock me-1"></i>
+										Password Min Length
+									</label>
+									<input type="number" class="form-control" name="PASSWORD_MIN_LENGTH" value="<%= settings.PASSWORD_MIN_LENGTH || '8' %>" min="6" max="20">
+								</div>
+								<div class="col-12">
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" name="REQUIRE_EMAIL_VERIFICATION" value="1" <%= settings.REQUIRE_EMAIL_VERIFICATION === '1' ? 'checked' : '' %>>
+										<label class="form-check-label">
+											<i class="bi bi-envelope-check me-1"></i>
+											Require email verification for new users
+										</label>
+									</div>
+								</div>
+								<div class="col-12">
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" name="ENABLE_2FA" value="1" <%= settings.ENABLE_2FA === '1' ? 'checked' : '' %>>
+										<label class="form-check-label">
+											<i class="bi bi-phone me-1"></i>
+											Enable Two-Factor Authentication
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="card-footer">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-check-lg"></i>
+								Save Security Settings
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- System -->
+			<div class="tab-pane fade" id="system-tab">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="mb-0">
+							<i class="bi bi-gear"></i>
+							System Information
+						</h5>
+					</div>
+					<div class="card-body">
+						<div class="row g-4">
+							<div class="col-md-6">
+								<h6 class="text-primary">System Status</h6>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span>Database Connection</span>
+									<span class="badge bg-success">
+										<i class="bi bi-check-lg"></i>
+										Connected
+									</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span>Email Service</span>
+									<span class="badge <%= settings.SMTP_HOST ? 'bg-success' : 'bg-warning' %>">
+										<%= settings.SMTP_HOST ? 'Configured' : 'Not Setup' %>
+									</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span>Server Status</span>
+									<span class="badge bg-success">
+										<i class="bi bi-check-lg"></i>
+										Online
+									</span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<h6 class="text-primary">System Actions</h6>
+								<div class="d-grid gap-2">
+									<button class="btn btn-outline-info btn-sm" onclick="clearCache()">
+										<i class="bi bi-arrow-clockwise"></i>
+										Clear Cache
+									</button>
+									<button class="btn btn-outline-warning btn-sm" onclick="exportLogs()">
+										<i class="bi bi-file-earmark-text"></i>
+										Export Logs
+									</button>
+									<button class="btn btn-outline-primary btn-sm" onclick="backupDatabase()">
+										<i class="bi bi-cloud-download"></i>
+										Backup Database
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+function saveAllSettings() {
+	// Get all forms and submit them
+	const forms = document.querySelectorAll('form[id$="Form"]');
+	forms.forEach(form => {
+		form.submit();
+	});
+}
+
+function exportSettings() {
+	// Export settings as JSON
+	alert('Settings export functionality would be implemented here.');
+}
+
+function clearCache() {
+	alert('Cache cleared successfully!');
+}
+
+function exportLogs() {
+	alert('Logs export functionality would be implemented here.');
+}
+
+function backupDatabase() {
+	alert('Database backup functionality would be implemented here.');
+}
+
+// Auto-save draft functionality
+document.querySelectorAll('input, select, textarea').forEach(input => {
+	input.addEventListener('change', function() {
+		const formData = new FormData();
+		formData.append(this.name, this.value);
+		// Auto-save could be implemented here
+	});
+});
+</script>

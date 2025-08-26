@@ -1,0 +1,36 @@
+<% layout('layouts/admin') %>
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h1 class="h4 m-0">Statuses</h1>
+	<a class="btn btn-primary" href="/admin/statuses/new">New Status</a>
+</div>
+<div class="table-responsive">
+	<table class="table table-hover align-middle">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>Name</th>
+				<th>Color</th>
+				<th>Position</th>
+				<th>Terminal</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<% statuses.forEach(st => { %>
+				<tr>
+					<td><%= st.id %></td>
+					<td><%= st.name %></td>
+					<td><span class="badge" style="background:<%= st.color %>"><%= st.color %></span></td>
+					<td><%= st.position %></td>
+					<td><%= st.is_terminal ? 'Yes' : 'No' %></td>
+					<td class="text-end">
+						<a class="btn btn-sm btn-outline-secondary" href="/admin/statuses/<%= st.id %>/edit">Edit</a>
+						<form method="post" action="/admin/statuses/<%= st.id %>?_method=DELETE" class="d-inline" onsubmit="return confirm('Delete this status?')">
+							<button class="btn btn-sm btn-outline-danger">Delete</button>
+						</form>
+					</td>
+				</tr>
+			<% }) %>
+		</tbody>
+	</table>
+</div>
