@@ -1,7 +1,7 @@
 const dbConfig = (process.env.DATABASE_URL || process.env.NODE_ENV === 'production')
 	? require('../config/db-postgres')
 	: require('../config/db');
-const { getPool } = dbConfig;
+const { getPool, isPostgres } = dbConfig;
 const { validationResult, body } = require('express-validator');
 
 function validators() {
@@ -28,7 +28,8 @@ module.exports = {
 				return res.status(400).render('statuses/new', { title: 'New Status', errors: errors.array(), form: req.body });
 			}
 			const { name, color, position, is_terminal, description } = req.body;
-			await getPool().query('INSERT INTO statuses (name, color, position, is_terminal, description) VALUES (?, ?, ?, ?, ?)', [name, color, position, is_terminal ? 1 : 0, description || null]);
+			const bool = (v) => (isPostgres ? Boolean(v) : (v ? 1 : 0));
+			await getPool().query('INSERT INTO statuses (name, color, position, is_terminal, description) VALUES (?, ?, ?, ?, ?)', [name, color, position, bool(is_terminal), description || null]);
 			req.flash('success', 'Status created');
 			res.redirect('/admin/statuses');
 		},
@@ -48,7 +49,8 @@ module.exports = {
 				return res.status(400).render('statuses/edit', { title: 'Edit Status', status: { id, ...req.body }, errors: errors.array() });
 			}
 			const { name, color, position, is_terminal, description } = req.body;
-			await getPool().query('UPDATE statuses SET name=?, color=?, position=?, is_terminal=?, description=? WHERE id = ?', [name, color, position, is_terminal ? 1 : 0, description || null, id]);
+			const bool = (v) => (isPostgres ? Boolean(v) : (v ? 1 : 0));
+			await getPool().query('UPDATE statuses SET name=?, color=?, position=?, is_terminal=?, description=? WHERE id = ?', [name, color, position, bool(is_terminal), description || null, id]);
 			req.flash('success', 'Status updated');
 			res.redirect('/admin/statuses');
 		},
