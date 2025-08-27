@@ -881,17 +881,30 @@
                     <h6 style="font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; color: white;">Get in Touch</h6>
                     <ul style="list-style: none; padding: 0;">
                         <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #94a3b8;">
-                            <i class="bi bi-envelope" style="color: #60a5fa;"></i> info@emilash.com
+                            <i class="bi bi-envelope" style="color: #60a5fa;"></i>
+                            <% if (appSettings && appSettings.COMPANY_EMAIL) { %>
+                                <a href="mailto:<%= appSettings.COMPANY_EMAIL %>" style="color: #94a3b8; text-decoration: none;"><%= appSettings.COMPANY_EMAIL %></a>
+                            <% } else { %>
+                                <span>—</span>
+                            <% } %>
                         </li>
                         <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #94a3b8;">
-                            <i class="bi bi-phone" style="color: #60a5fa;"></i> +1 (555) 123-4567
+                            <i class="bi bi-phone" style="color: #60a5fa;"></i>
+                            <% if (appSettings && appSettings.COMPANY_PHONE) { %>
+                                <a href="tel:<%= appSettings.COMPANY_PHONE %>" style="color: #94a3b8; text-decoration: none;"><%= appSettings.COMPANY_PHONE %></a>
+                            <% } else { %>
+                                <span>—</span>
+                            <% } %>
                         </li>
                         <li style="margin-bottom: 0.75rem; color: #94a3b8;">
                             <div style="display: flex; align-items: start; gap: 0.5rem;">
                                 <i class="bi bi-geo-alt" style="color: #60a5fa;"></i>
                                 <div>
-                                    123 Logistics Ave<br>
-                                    New York, NY 10001
+                                    <% if (appSettings && appSettings.COMPANY_ADDRESS) { %>
+                                        <%- appSettings.COMPANY_ADDRESS.replace(/\n/g, '<br>') %>
+                                    <% } else { %>
+                                        <span>—</span>
+                                    <% } %>
                                 </div>
                             </div>
                         </li>

@@ -46,6 +46,10 @@ function getPool() {
 async function runMigrations() {
 	const initSqlPath = path.join(__dirname, '..', 'migrations', 'init.sql');
 	const sql = fs.readFileSync(initSqlPath, 'utf8');
+	// Ensure pool is initialized
+	if (!pool) {
+		getPool();
+	}
 	const conn = await pool.getConnection();
 	try {
 		await conn.query('SET FOREIGN_KEY_CHECKS = 1');

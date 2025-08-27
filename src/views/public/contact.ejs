@@ -19,10 +19,10 @@
             
             <!-- Contact Methods -->
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                <a href="tel:+15551234567" style="padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); transition: transform 0.3s;">
+                <a href="<%= (appSettings && appSettings.COMPANY_PHONE) ? ('tel:' + appSettings.COMPANY_PHONE) : '#' %>" style="padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); transition: transform 0.3s;">
                     <i class="bi bi-telephone"></i> Call Now
                 </a>
-                <a href="mailto:info@emilash.com" style="padding: 1rem 2rem; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); transition: all 0.3s;">
+                <a href="<%= (appSettings && appSettings.COMPANY_EMAIL) ? ('mailto:' + appSettings.COMPANY_EMAIL) : '#' %>" style="padding: 1rem 2rem; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); transition: all 0.3s;">
                     Email Us <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
@@ -107,9 +107,11 @@
                 </div>
                     <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Head Office</h5>
                     <p style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
-                    123 Logistics Avenue<br>
-                    New York, NY 10001<br>
-                    United States
+                    <% if (appSettings && appSettings.COMPANY_ADDRESS) { %>
+                        <%- appSettings.COMPANY_ADDRESS.replace(/\n/g, '<br>') %>
+                    <% } else { %>
+                        <span>—</span>
+                    <% } %>
                 </p>
             </div>
             
@@ -119,9 +121,11 @@
                 </div>
                     <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Phone Numbers</h5>
                     <p style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
-                    Main: +1 (555) 123-4567<br>
-                    Toll Free: 1-800-EMILASH<br>
-                    Support: +1 (555) 987-6543
+                    <% if (appSettings && appSettings.COMPANY_PHONE) { %>
+                        Main: <%= appSettings.COMPANY_PHONE %>
+                    <% } else { %>
+                        <span>—</span>
+                    <% } %>
                 </p>
             </div>
             
@@ -131,9 +135,11 @@
                 </div>
                     <h5 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Email Addresses</h5>
                     <p style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
-                    General: info@emilash.com<br>
-                    Support: support@emilash.com<br>
-                    Sales: sales@emilash.com
+                    <% if (appSettings && appSettings.COMPANY_EMAIL) { %>
+                        General: <%= appSettings.COMPANY_EMAIL %>
+                    <% } else { %>
+                        <span>—</span>
+                    <% } %>
                 </p>
             </div>
             
@@ -273,7 +279,7 @@
             <img src="/img/pickup%20parcel%20front%20door(bg3).jpg" style="width: 100%; height: 400px; object-fit: cover;" alt="Our Location">
             <div style="padding: 2rem; text-center;">
                 <h4 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;">Visit Our Head Office</h4>
-                <p style="color: #64748b; margin-bottom: 1.5rem;">123 Logistics Avenue, New York, NY 10001</p>
+                <p style="color: #64748b; margin-bottom: 1.5rem;"><% if (appSettings && appSettings.COMPANY_ADDRESS) { %><%- appSettings.COMPANY_ADDRESS %><% } else { %>—<% } %></p>
                 <a href="#" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
                     <i class="bi bi-map"></i> Get Directions
                 </a>
@@ -288,7 +294,7 @@
         <h2 style="font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; color: white; margin-bottom: 1rem;">Need Immediate Assistance?</h2>
         <p style="font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem;">Our support team is available 24/7 to help you with any shipping needs</p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="tel:+15551234567" style="padding: 1rem 2rem; background: white; color: #0f172a; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <a href="<%= (appSettings && appSettings.COMPANY_PHONE) ? ('tel:' + appSettings.COMPANY_PHONE) : '#' %>" style="padding: 1rem 2rem; background: white; color: #0f172a; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
                 <i class="bi bi-telephone"></i> Call Now
             </a>
             <a href="/track" style="padding: 1rem 2rem; background: transparent; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid rgba(255, 255, 255, 0.3);">
