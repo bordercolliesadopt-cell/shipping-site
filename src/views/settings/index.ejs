@@ -159,9 +159,16 @@
 							<i class="bi bi-envelope-gear"></i>
 							Email Configuration
 						</h5>
-						<span class="badge <%= settings.SMTP_HOST ? 'bg-success' : 'bg-warning' %>">
-							<%= settings.SMTP_HOST ? 'Configured' : 'Not Setup' %>
-						</span>
+						<div class="d-flex align-items-center gap-2">
+							<span class="badge <%= settings.SMTP_HOST ? 'bg-success' : 'bg-warning' %>">
+								<%= settings.SMTP_HOST ? 'Configured' : 'Not Setup' %>
+							</span>
+							<% if (settings.SMTP_LAST_TEST_STATUS) { %>
+								<span class="badge <%= settings.SMTP_LAST_TEST_STATUS === 'success' ? 'bg-success' : 'bg-danger' %>">
+									Last Test: <%= settings.SMTP_LAST_TEST_STATUS %>
+								</span>
+							<% } %>
+						</div>
 					</div>
 					<form method="post" action="/admin/settings" id="smtpForm">
 						<div class="card-body">

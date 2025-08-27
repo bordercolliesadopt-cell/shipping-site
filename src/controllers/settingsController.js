@@ -81,6 +81,11 @@ module.exports = {
 	},
 	testSmtp: async (req, res) => {
 		const settings = await getAllSettingsMap();
+		const adapter = getPool();
+		const conn = await adapter.getConnection();
+		const nowIso = new Date().toISOString();
+		let success = false;
+		let message = '';
 		try {
 			const transporter = nodemailer.createTransport({
 				host: settings.SMTP_HOST,
@@ -95,11 +100,38 @@ module.exports = {
 				subject: 'SMTP Test - Emilash Logistics',
 				text: 'This is a test email from Emilash Logistics admin panel.',
 			});
-			req.flash('success', 'SMTP test email sent');
+			success = true;
+			message = 'SMTP verified and test email sent';
+			req.flash('success', message);
 		} catch (e) {
-			console.error(e);
-			req.flash('error', 'SMTP test failed: ' + (e && e.message));
+			console.error('SMTP test failed:', e);
+			success = false;
+			message = (e && e.message) ? e.message : 'Unknown error';
+			req.flash('error', 'SMTP test failed: ' + message);
+		} finally {
+			try {
+				// Persist last SMTP test results in settings
+				const entries = [
+					['SMTP_LAST_TEST_STATUS', success ? 'success' : 'failure'],
+					['SMTP_LAST_TEST_AT', nowIso],
+					['SMTP_LAST_TEST_MESSAGE', message]
+				];
+				for (const [key, value] of entries) {
+					const sql = isPostgres
+						? 'INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value'
+						: 'INSERT INTO settings(`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)';
+					if (isPostgres) {
+						const { query, params } = adapter.convertQuery(sql, [key, value]);
+						await conn.query(query, params);
+					} else {
+						await conn.query(sql, [key, value]);
+					}
+				}
+			} catch (persistErr) {
+				console.error('Failed to persist SMTP test results:', persistErr);
+			}
+			conn.release();
+			res.redirect('/admin/settings');
 		}
-		res.redirect('/admin/settings');
 	},
 };
